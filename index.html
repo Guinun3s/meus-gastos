@@ -17,7 +17,20 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <script>
+  // ============================================================
+  // FIREBASE CONFIG — edite aqui as suas credenciais
+  // ============================================================
+  window.FIREBASE_CONFIG = {
+    apiKey:            "AIzaSyDGF2fTaHWsbSxgMw4AMkyztabGbdqylU8",
+    authDomain:        "meus-gastos-d3807.firebaseapp.com",
+    projectId:         "meus-gastos-d3807",
+    storageBucket:     "meus-gastos-d3807.firebasestorage.app",
+    messagingSenderId: "527834550351",
+    appId:             "1:527834550351:web:981fb78d0d335c7e389a3a",
+    measurementId:     "G-VXGH1GNL9E"
+  };
+  </script>
 
   <style>
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
@@ -1115,8 +1128,8 @@ function syncBothBalanceInputs() {
 // INIT FIREBASE
 // ============================================================
 function initFirebase() {
-  if(!window.FIREBASE_CONFIG||window.FIREBASE_CONFIG.apiKey==='SUA_API_KEY') {
-    console.warn('Firebase não configurado. Edite firebase-config.js');
+  if(!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || window.FIREBASE_CONFIG.apiKey==='SUA_API_KEY') {
+    console.error('Firebase não configurado. Preencha window.FIREBASE_CONFIG no index.html');
     showScreen('auth'); return;
   }
   if(!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
