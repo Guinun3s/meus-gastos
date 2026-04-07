@@ -184,6 +184,24 @@
           <button class="btn-add" onclick="addExpense()">+ Add</button>
         </div>
 
+        <!-- Tipo (recorrente/parcelado) — desktop -->
+        <div class="d-only" style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+          <div class="fld" style="max-width:200px">
+            <label class="flabel">Tipo de lançamento</label>
+            <select class="fselect" id="expType" onchange="onExpTypeChange(this)">
+              <option value="normal">Normal</option>
+              <option value="recorrente">🔄 Recorrente</option>
+              <option value="parcelado">📦 Parcelado</option>
+            </select>
+          </div>
+          <div class="exp-type-extra" id="expTypeExtra">
+            <span class="flabel" id="expTypeLabel">Repetir por</span>
+            <input class="finput" type="number" id="expTypeQty" value="12" min="1" max="60" style="width:64px"
+              oninput="_updateInstallPreview(true)" />
+            <span class="exp-type-preview" id="expTypePreview">meses</span>
+          </div>
+        </div>
+
         <!-- Seletor de meta (desktop) -->
         <div class="d-only goal-link-row" id="goalLinkWrap" style="display:none">
           <span class="flabel" style="white-space:nowrap">🎯 Qual meta?</span>
@@ -502,6 +520,19 @@
   </div>
 </div>
 
+<!-- Modal: confirmar delete (recorrente / parcelado) -->
+<div class="modal-bg" id="modalDelete">
+  <div class="modal" style="max-width:320px">
+    <div class="del-modal-title"    id="delModalTitle"></div>
+    <div class="del-modal-subtitle" id="delModalSubtitle"></div>
+    <div class="del-modal-btns">
+      <button class="del-btn-opt"        id="delBtnA"></button>
+      <button class="del-btn-opt danger" id="delBtnB"></button>
+    </div>
+    <button class="del-btn-cancel" onclick="closeModal('modalDelete')">Cancelar</button>
+  </div>
+</div>
+
 <!-- Modal: exportar CSV -->
 <div class="modal-bg d-only" id="modalExport">
   <div class="modal">
@@ -567,6 +598,21 @@
         <option value="boleto">Boleto</option>
         <option value="transferencia">Transferência</option>
       </select>
+    </div>
+    <!-- Tipo (recorrente/parcelado) — mobile -->
+    <div class="form-field">
+      <label class="m-flabel">Tipo de lançamento</label>
+      <select class="m-fselect" id="mExpType" onchange="onExpTypeChange(this)">
+        <option value="normal">Normal</option>
+        <option value="recorrente">🔄 Recorrente</option>
+        <option value="parcelado">📦 Parcelado</option>
+      </select>
+    </div>
+    <div class="m-exp-type-extra" id="mExpTypeExtra">
+      <span class="m-flabel" id="mExpTypeLabel">Repetir por</span>
+      <input class="m-finput" type="number" id="mExpTypeQty" value="12" min="1" max="60"
+        inputmode="numeric" oninput="_updateInstallPreview(false)" />
+      <span class="m-exp-type-preview" id="mExpTypePreview">meses</span>
     </div>
     <button class="btn-submit" id="sheetAddBtn" onclick="saveExpenseMobile()">Adicionar lançamento</button>
   </div>
