@@ -11,26 +11,16 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <title>meu $ dinheiro</title>
-
-  <!-- Fontes -->
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-
-  <!-- Estilos -->
   <link rel="stylesheet" href="css/style.css" />
-
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-  <!-- Credenciais Firebase (edite firebase-config.js) -->
   <script src="firebase-config.js"></script>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════════════
-     TELA DE CARREGAMENTO
-════════════════════════════════════════════════════ -->
+<!-- CARREGAMENTO -->
 <div id="loadingScreen">
   <div class="loading-logo">meu <b>$</b> dinheiro</div>
   <div style="display:flex;gap:6px;align-items:center">
@@ -40,21 +30,16 @@
 </div>
 
 
-<!-- ════════════════════════════════════════════════════
-     TELA DE LOGIN
-════════════════════════════════════════════════════ -->
+<!-- LOGIN -->
 <div id="authScreen" style="display:none">
   <div class="auth-box">
     <div class="auth-brand">meu <b>$</b> dinheiro</div>
     <div class="auth-tagline">controle financeiro pessoal</div>
-
     <div class="auth-tabs">
       <button class="auth-tab active" id="tabEntrar" onclick="setAuthMode('login')">Entrar</button>
       <button class="auth-tab"        id="tabCriar"  onclick="setAuthMode('register')">Criar conta</button>
     </div>
-
     <div class="auth-err" id="authErr"></div>
-
     <div class="auth-field" id="nameField" style="display:none">
       <label class="auth-label">Nome</label>
       <input class="auth-input" type="text" id="authName" placeholder="Seu nome" autocomplete="name" />
@@ -71,11 +56,8 @@
       <label class="auth-label">Confirmar senha</label>
       <input class="auth-input" type="password" id="authPassConfirm" placeholder="••••••••" autocomplete="new-password" />
     </div>
-
     <button class="btn-auth" id="btnAuthEmail" onclick="handleEmailAuth()">Entrar</button>
-
     <div class="auth-divider">ou</div>
-
     <button class="btn-auth secondary" onclick="handleGoogle()">
       <svg class="google-icon" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -85,55 +67,40 @@
       </svg>
       Continuar com Google
     </button>
-
     <button class="auth-forgot" id="forgotBtn" onclick="handleForgotPassword()">Esqueci minha senha</button>
   </div>
 </div>
 
 
-<!-- ════════════════════════════════════════════════════
-     APP PRINCIPAL
-════════════════════════════════════════════════════ -->
+<!-- APP PRINCIPAL -->
 <div id="appScreen" style="display:none">
 
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="brand">meu <b>$</b></div>
-
     <div class="month-nav">
       <button class="mnbtn" onclick="changeMonth(-1)">&#8592;</button>
       <div class="mlabel" id="monthLabel"></div>
       <button class="mnbtn" onclick="changeMonth(1)">&#8594;</button>
     </div>
-
     <div class="top-right">
       <div class="sync-dot" id="syncDot" data-s="ok" title="Sincronizado"></div>
-
-      <!-- Desktop -->
       <button class="tbtn d-only" onclick="openExport()">&#8595; CSV</button>
       <button class="tbtn d-only" onclick="openImportModal()">&#8593; Importar</button>
       <button class="user-btn d-only" onclick="openModal('modalUser')">
         <div class="user-avatar" id="topAvatar"></div>
         <span class="user-email" id="topEmail"></span>
       </button>
-
-      <!-- Mobile -->
       <button class="top-menu-btn m-only" onclick="openSheet('sheetMenu')">&#8942;</button>
     </div>
   </div>
 
-
   <!-- LAYOUT -->
   <div class="layout">
 
-    <!-- SIDEBAR (desktop only) -->
+    <!-- SIDEBAR (desktop) -->
     <div class="sidebar d-only">
-      <div>
-        <div class="s-label">Saldo do mês</div>
-        <input class="balance-edit" type="number" id="balanceInput"
-          placeholder="R$ 0,00" step="100" min="0" oninput="saveBalance(this.value)" />
-        <div class="balance-hint">Sua renda / saldo disponível</div>
-      </div>
+      <div id="sidebarBalance"></div>
       <div id="sidebarSit"></div>
       <div>
         <div class="s-label">por categoria</div>
@@ -141,27 +108,15 @@
       </div>
     </div>
 
-
     <!-- MAIN -->
     <div class="main">
-
-      <!-- Saldo (mobile only) -->
-      <div class="m-balance m-only">
-        <div class="bal-label">Saldo do mês</div>
-        <div class="bal-input-wrap">
-          <span class="bal-prefix">R$</span>
-          <input class="m-balance-edit" type="number" id="balanceInputM"
-            placeholder="0,00" step="100" min="0"
-            oninput="saveBalance(this.value)" inputmode="decimal" />
-        </div>
-      </div>
 
       <!-- Cards de resumo -->
       <div class="cards">
         <div class="card">
-          <div class="card-label">Saldo informado</div>
-          <div class="card-val" id="balanceDisp">R$ 0,00</div>
-          <div class="card-sub">renda do mês</div>
+          <div class="card-label">Receitas</div>
+          <div class="card-val green" id="totalReceita">R$ 0,00</div>
+          <div class="card-sub">entradas do mês</div>
         </div>
         <div class="card">
           <div class="card-label">Total gasto</div>
@@ -180,12 +135,13 @@
         </div>
       </div>
 
-      <!-- Extras da home (mobile only) -->
+      <!-- Extras da home (mobile) -->
       <div id="mHomeExtras" class="m-only" style="padding:0 1rem;"></div>
 
-      <!-- Abas (desktop only) -->
+      <!-- Abas (desktop) -->
       <div class="tabs d-only">
         <button class="tab active" onclick="switchTab('lancamentos', this)">Lançamentos</button>
+        <button class="tab"        onclick="switchTab('receitas', this)">Receitas</button>
         <button class="tab"        onclick="switchTab('graficos', this)">Gráficos</button>
         <button class="tab"        onclick="switchTab('historico', this)">Histórico</button>
         <button class="tab"        onclick="switchTab('orcamento', this)">Orçamento</button>
@@ -196,7 +152,7 @@
       <!-- ── PAINEL: LANÇAMENTOS ── -->
       <div class="panel active" id="panel-lancamentos">
 
-        <!-- Formulário de adição (desktop) -->
+        <!-- Formulário (desktop) -->
         <div class="form-row d-only">
           <div class="fld">
             <label class="flabel">Descrição</label>
@@ -228,7 +184,7 @@
           <button class="btn-add" onclick="addExpense()">+ Add</button>
         </div>
 
-        <!-- Seletor de meta — aparece abaixo do form quando categoria = Meta (desktop) -->
+        <!-- Seletor de meta (desktop) -->
         <div class="d-only goal-link-row" id="goalLinkWrap" style="display:none">
           <span class="flabel" style="white-space:nowrap">🎯 Qual meta?</span>
           <select class="fselect" id="goalLink" onchange="onGoalLinkChange(this)"></select>
@@ -236,8 +192,7 @@
 
         <!-- Busca (mobile) -->
         <div class="search-bar-m m-only">
-          <input type="text" id="filterSearchM"
-            placeholder="Buscar lançamento..." oninput="renderExpenses()" />
+          <input type="text" id="filterSearchM" placeholder="Buscar lançamento..." oninput="renderExpenses()" />
         </div>
 
         <!-- Filtros -->
@@ -264,12 +219,8 @@
           <table>
             <thead>
               <tr>
-                <th>Descrição</th>
-                <th>Categoria</th>
-                <th>Pagamento</th>
-                <th>Data</th>
-                <th class="r">Valor</th>
-                <th></th>
+                <th>Descrição</th><th>Categoria</th><th>Pagamento</th>
+                <th>Data</th><th class="r">Valor</th><th></th>
               </tr>
             </thead>
             <tbody id="expenseTbody"></tbody>
@@ -278,8 +229,52 @@
 
         <!-- Cards (mobile) -->
         <div class="m-exp-list m-only" id="mExpenseList"></div>
-
       </div><!-- /panel-lancamentos -->
+
+
+      <!-- ── PAINEL: RECEITAS ── -->
+      <div class="panel" id="panel-receitas">
+
+        <!-- Formulário (desktop) -->
+        <div class="form-row d-only">
+          <div class="fld">
+            <label class="flabel">Descrição</label>
+            <input class="finput" type="text" id="incDesc" placeholder="ex: Salário, Freelance..." />
+          </div>
+          <div class="fld">
+            <label class="flabel">Valor R$</label>
+            <input class="finput" type="number" id="incValor" placeholder="0,00" step="0.01" min="0" />
+          </div>
+          <div class="fld">
+            <label class="flabel">Tipo</label>
+            <select class="fselect" id="incTipo">
+              <option value="banco">💳 Banco</option>
+              <option value="dinheiro">💵 Dinheiro</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="flabel">Data</label>
+            <input class="finput" type="date" id="incData" />
+          </div>
+          <button class="btn-add" onclick="addIncome()">+ Add</button>
+        </div>
+
+        <!-- Tabela (desktop) -->
+        <div class="table-wrap d-only">
+          <table>
+            <thead>
+              <tr>
+                <th>Descrição</th><th>Tipo</th><th>Data</th>
+                <th class="r">Valor</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="incomeTbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="m-exp-list m-only" id="mIncomeList"></div>
+      </div><!-- /panel-receitas -->
 
 
       <!-- ── PAINEL: GRÁFICOS ── -->
@@ -307,10 +302,8 @@
       </div><!-- /panel-graficos -->
 
 
-      <!-- ── PAINEL: HISTÓRICO (novo) ── -->
+      <!-- ── PAINEL: HISTÓRICO ── -->
       <div class="panel" id="panel-historico">
-
-        <!-- Desktop: dentro do painel com padding do main -->
         <div class="d-only">
           <div class="hist-header">
             <div>
@@ -319,59 +312,49 @@
             </div>
           </div>
           <div class="hist-chart-wrap">
-            <div class="hist-chart-inner">
-              <canvas id="historyChart"></canvas>
-            </div>
+            <div class="hist-chart-inner"><canvas id="historyChart"></canvas></div>
           </div>
-          <div class="hist-table-wrap">
-            <div id="historyTable"></div>
-          </div>
+          <div class="hist-table-wrap"><div id="historyTable"></div></div>
         </div>
-
-        <!-- Mobile: mesmo conteúdo com padding lateral -->
         <div class="m-only" style="padding-top:12px">
           <div style="padding:0 1rem;margin-bottom:12px">
             <div style="font-size:12px;color:var(--text2)">Histórico comparativo</div>
             <div style="font-size:10px;color:var(--text3);margin-top:2px">Últimos 6 meses</div>
           </div>
           <div class="hist-chart-wrap">
-            <div class="hist-chart-inner">
-              <canvas id="historyChartM"></canvas>
-            </div>
+            <div class="hist-chart-inner"><canvas id="historyChartM"></canvas></div>
           </div>
-          <div class="hist-table-wrap">
-            <div id="historyTableM"></div>
-          </div>
+          <div class="hist-table-wrap"><div id="historyTableM"></div></div>
         </div>
-
       </div><!-- /panel-historico -->
 
 
       <!-- ── PAINEL: ORÇAMENTO ── -->
       <div class="panel" id="panel-orcamento">
         <div class="budget-grid" id="budgetGrid"></div>
-      </div><!-- /panel-orcamento -->
+      </div>
 
 
       <!-- ── PAINEL: METAS ── -->
       <div class="panel" id="panel-metas">
         <button class="btn-new-goal d-only" onclick="openGoalForm()">+ Nova meta</button>
-
-        <!-- Mobile: botão FAB dedicado, lista separada para não conflitar -->
         <div class="goals-grid m-only" id="goalsListM"></div>
-      </div><!-- /panel-metas -->
+      </div>
 
     </div><!-- /main -->
   </div><!-- /layout -->
 
 
-  <!-- NAV INFERIOR + FAB (mobile only) -->
+  <!-- NAV INFERIOR + FAB (mobile) -->
   <nav class="bottom-nav m-only">
     <button class="nav-btn active" onclick="switchMobilePage('home', this)">
       <span class="nav-icon">⌂</span><span class="nav-label">Início</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('lancamentos', this)">
       <span class="nav-icon">≡</span><span class="nav-label">Gastos</span>
+    </button>
+    <button class="nav-btn" onclick="switchMobilePage('receitas', this)">
+      <span class="nav-icon">↑</span><span class="nav-label">Receitas</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('graficos', this)">
       <span class="nav-icon">◎</span><span class="nav-label">Gráficos</span>
@@ -392,11 +375,9 @@
 </div><!-- /appScreen -->
 
 
-<!-- ════════════════════════════════════════════════════
-     MODAIS (desktop)
-════════════════════════════════════════════════════ -->
+<!-- ════════ MODAIS (desktop) ════════ -->
 
-<!-- Modal: dados do usuário -->
+<!-- Modal: usuário -->
 <div class="modal-bg d-only" id="modalUser">
   <div class="modal" style="max-width:320px">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
@@ -413,20 +394,18 @@
   </div>
 </div>
 
-<!-- Modal: editar lançamento (desktop) — novo -->
+<!-- Modal: editar lançamento (despesa) -->
 <div class="modal-bg d-only" id="modalEdit">
   <div class="modal">
     <h3>✎ Editar lançamento</h3>
     <div class="modal-field">
       <label class="modal-label">Descrição</label>
-      <input class="finput" type="text" id="editDesc" placeholder="ex: Mercado Extra"
-        style="width:100%" />
+      <input class="finput" type="text" id="editDesc" placeholder="ex: Mercado Extra" style="width:100%" />
     </div>
     <div class="modal-2col">
       <div class="modal-field">
         <label class="modal-label">Valor R$</label>
-        <input class="finput" type="number" id="editValor" placeholder="0,00"
-          step="0.01" min="0" />
+        <input class="finput" type="number" id="editValor" placeholder="0,00" step="0.01" min="0" />
       </div>
       <div class="modal-field">
         <label class="modal-label">Data</label>
@@ -457,20 +436,47 @@
   </div>
 </div>
 
+<!-- Modal: editar receita -->
+<div class="modal-bg d-only" id="modalEditIncome">
+  <div class="modal">
+    <h3>✎ Editar receita</h3>
+    <div class="modal-field">
+      <label class="modal-label">Descrição</label>
+      <input class="finput" type="text" id="editIncDesc" placeholder="ex: Salário" style="width:100%" />
+    </div>
+    <div class="modal-2col">
+      <div class="modal-field">
+        <label class="modal-label">Valor R$</label>
+        <input class="finput" type="number" id="editIncValor" placeholder="0,00" step="0.01" min="0" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Data</label>
+        <input class="finput" type="date" id="editIncData" />
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Tipo</label>
+      <select class="fselect" id="editIncTipo">
+        <option value="banco">💳 Banco</option>
+        <option value="dinheiro">💵 Dinheiro</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-s" onclick="closeModal('modalEditIncome')">Cancelar</button>
+      <button class="btn-p" onclick="saveEditIncome()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
 
-<!-- Modal: nova/editar meta (desktop) -->
+<!-- Modal: nova/editar meta -->
 <div class="modal-bg d-only" id="modalGoal">
   <div class="modal" style="max-width:460px">
     <h3 id="goalFormTitle">Nova meta</h3>
-
     <div class="goal-form-field">
       <label class="goal-form-label">Nome da meta</label>
       <input class="finput" type="text" id="goalName" placeholder="ex: Carro novo, Viagem, Reserva de emergência" style="width:100%" />
     </div>
-
-    <!-- Campo oculto: usado internamente ao editar uma meta existente -->
     <input type="hidden" id="goalSaved" value="0" />
-
     <div class="goal-form-2col">
       <div class="goal-form-field">
         <label class="goal-form-label">Valor alvo (R$)</label>
@@ -481,17 +487,14 @@
         <input class="finput" type="date" id="goalDeadline" />
       </div>
     </div>
-
     <div class="goal-form-field">
       <label class="goal-form-label">Ícone</label>
       <div class="icon-picker" id="goalIconPicker"></div>
     </div>
-
     <div class="goal-form-field">
       <label class="goal-form-label">Cor</label>
       <div class="color-picker" id="goalColorPicker"></div>
     </div>
-
     <div class="modal-actions">
       <button class="btn-s" onclick="closeGoalForm()">Cancelar</button>
       <button class="btn-p" id="goalFormSubmit" onclick="addGoal()">Criar meta</button>
@@ -525,16 +528,13 @@
 </div>
 
 
-<!-- ════════════════════════════════════════════════════
-     SHEETS (mobile)
-════════════════════════════════════════════════════ -->
+<!-- ════════ SHEETS (mobile) ════════ -->
 
-<!-- Sheet: novo lançamento / editar lançamento (mesmo sheet, modo dinâmico) -->
+<!-- Sheet: novo/editar lançamento (despesa) -->
 <div class="sheet-bg m-only" id="sheetAdd">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheetAddTitle">Novo lançamento</div>
-
     <div class="form-field">
       <label class="m-flabel">Descrição</label>
       <input class="m-finput" type="text" id="mDesc" placeholder="ex: Mercado Extra" />
@@ -542,8 +542,7 @@
     <div class="form-2col">
       <div class="form-field">
         <label class="m-flabel">Valor R$</label>
-        <input class="m-finput" type="number" id="mValor"
-          placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
+        <input class="m-finput" type="number" id="mValor" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
       </div>
       <div class="form-field">
         <label class="m-flabel">Data</label>
@@ -554,7 +553,6 @@
       <label class="m-flabel">Categoria</label>
       <select class="m-fselect" id="mCatSelect" onchange="onCatChange(this)"></select>
     </div>
-    <!-- Seletor de meta — visível apenas quando categoria = Meta -->
     <div class="form-field" id="mGoalLinkWrap" style="display:none">
       <label class="m-flabel">Qual meta?</label>
       <select class="m-fselect" id="mGoalLink" onchange="onGoalLinkChange(this)"></select>
@@ -574,13 +572,41 @@
   </div>
 </div>
 
+<!-- Sheet: nova/editar receita -->
+<div class="sheet-bg m-only" id="sheetIncome">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheetIncomeTitle">Nova receita</div>
+    <div class="form-field">
+      <label class="m-flabel">Descrição</label>
+      <input class="m-finput" type="text" id="mIncDesc" placeholder="ex: Salário, Freelance..." />
+    </div>
+    <div class="form-2col">
+      <div class="form-field">
+        <label class="m-flabel">Valor R$</label>
+        <input class="m-finput" type="number" id="mIncValor" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
+      </div>
+      <div class="form-field">
+        <label class="m-flabel">Data</label>
+        <input class="m-finput" type="date" id="mIncData" />
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="m-flabel">Tipo</label>
+      <select class="m-fselect" id="mIncTipo">
+        <option value="banco">💳 Banco</option>
+        <option value="dinheiro">💵 Dinheiro</option>
+      </select>
+    </div>
+    <button class="btn-submit" id="sheetIncomeBtn" onclick="saveIncomeMobile()">Adicionar receita</button>
+  </div>
+</div>
 
 <!-- Sheet: nova/editar meta (mobile) -->
 <div class="sheet-bg m-only" id="sheetGoal">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="goalFormTitle">Nova meta</div>
-
     <div class="form-field">
       <label class="m-flabel">Nome da meta</label>
       <input class="m-finput" type="text" id="goalNameM" placeholder="ex: Carro novo, Viagem..." />
@@ -595,10 +621,7 @@
         <input class="m-finput" type="date" id="goalDeadlineM" />
       </div>
     </div>
-
-    <!-- Campo oculto: usado internamente ao editar -->
     <input type="hidden" id="goalSavedM" value="0" />
-
     <div class="form-field">
       <label class="m-flabel">Ícone</label>
       <div class="icon-picker" id="goalIconPickerM"></div>
@@ -607,7 +630,6 @@
       <label class="m-flabel">Cor</label>
       <div class="color-picker" id="goalColorPickerM"></div>
     </div>
-
     <button class="btn-submit" id="goalFormSubmitM" onclick="addGoalMobile()">Criar meta</button>
   </div>
 </div>
@@ -670,18 +692,14 @@
 </div>
 
 
-<!-- Toast de notificação -->
 <div class="toast" id="toast"></div>
 
 
-<!-- ════════════════════════════════════════════════════
-     SCRIPTS
-     Ordem importa: constants → state → utils → storage
-                    → sync → auth → navigation → features
-                    → app (init)
-════════════════════════════════════════════════════ -->
+<!-- SCRIPTS
+     Ordem: constants → state → utils → storage → sync → auth
+             → navigation → features → app
+-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-
 <script src="js/constants.js"></script>
 <script src="js/state.js"></script>
 <script src="js/utils.js"></script>
@@ -690,6 +708,7 @@
 <script src="js/auth.js"></script>
 <script src="js/navigation.js"></script>
 <script src="js/expenses.js"></script>
+<script src="js/incomes.js"></script>
 <script src="js/summary.js"></script>
 <script src="js/budget.js"></script>
 <script src="js/charts.js"></script>

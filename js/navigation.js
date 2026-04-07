@@ -19,17 +19,24 @@ function switchMobilePage(name, btn) {
   btn.classList.add('active');
 
   const extras = document.getElementById('mHomeExtras');
+  const fab    = document.querySelector('.fab');
 
   if (name === 'home') {
     extras.style.display = '';
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    if (fab) { fab.textContent = '+'; fab.onclick = openAddSheet; }
   } else {
     extras.style.display = 'none';
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + name).classList.add('active');
     if (name === 'graficos')  renderCharts();
     if (name === 'historico') renderHistoryPanel();
-  if (name === 'metas')     renderGoals();
+    if (name === 'metas')     renderGoals();
+    // FAB contextual: receitas abre sheet de receita
+    if (fab) {
+      fab.textContent = '+';
+      fab.onclick = name === 'receitas' ? openAddIncomeSheet : openAddSheet;
+    }
   }
 }
 
@@ -38,17 +45,5 @@ function changeMonth(delta) {
   curMonth += delta;
   if (curMonth > 11) { curMonth = 0; curYear++; }
   if (curMonth < 0)  { curMonth = 11; curYear--; }
-  syncBothBalanceInputs();
   render();
-}
-
-// ── Salvar saldo ─────────────────────────────────────────────
-function saveBalance(v) {
-  saveBal(parseFloat(v) || 0);
-  ['balanceInput', 'balanceInputM'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el !== document.activeElement) el.value = v;
-  });
-  renderSummary();
-  renderSidebar();
 }

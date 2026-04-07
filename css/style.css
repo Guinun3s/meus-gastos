@@ -718,3 +718,59 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
   border-color: var(--text);
   transform: scale(1.15);
 }
+
+/* ════════════════════════════════════════════════
+   RECEITAS — novos componentes
+════════════════════════════════════════════════ */
+
+/* Sidebar: saldo banco/dinheiro */
+.s-bal-split {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+.s-bal-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.s-bal-icon { font-size: 16px; }
+.s-bal-sub  { font-size: 10px; color: var(--text3); margin-bottom: 1px; }
+.s-bal-val  { font-size: 13px; font-weight: 500; font-family: var(--mono); }
+
+/* Mobile home: saldo banco/dinheiro */
+.m-saldo-split {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.m-saldo-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.m-saldo-icon  { font-size: 20px; }
+.m-saldo-label { font-size: 10px; color: var(--text3); margin-bottom: 2px; }
+.m-saldo-val   { font-size: 13px; font-weight: 500; font-family: var(--mono); }
+
+/* Nav com mais itens: scroll horizontal no mobile */
+@media (max-width: 767px) {
+  .bottom-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    padding: 0 4px;
+  }
+  .bottom-nav::-webkit-scrollbar { display: none; }
+  .nav-btn { min-width: 56px; flex-shrink: 0; }
+}
+
+/* Cor verde para valores positivos em cards de receita */
+.green { color: var(--accent) !important; }

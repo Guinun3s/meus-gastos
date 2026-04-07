@@ -1,60 +1,63 @@
 // ============================================================
 // js/app.js — inicialização geral e render global
-// Ponto de entrada após todos os outros módulos carregarem.
 // ============================================================
 
-// ── Render global: atualiza todas as seções visíveis ─────────
 function render() {
   renderSummary();
   renderExpenses();
+  renderIncomes();
   renderSidebar();
   renderBudget();
   renderGoals();
 }
 
-// ── Preenche todos os <select> de categoria ──────────────────
 function fillCatSelects() {
   const opts = CATS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-
-  // Selects de adicionar/editar
   ['catSelect', 'mCatSelect', 'editCatSelect'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = opts;
   });
-
-  // Select de filtro
   document.getElementById('filterCat').innerHTML =
     '<option value="">Todas categorias</option>' + opts;
 }
 
-// ── Inicialização ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-
-  // Fechar modais/sheets ao clicar no fundo
   initOverlayClose();
-
-  // Monta os pickers de ícone e cor das metas
   buildGoalPickers();
 
-  // Enter no formulário de login
+  // Enter nos campos de login
   ['authEmail', 'authPass', 'authPassConfirm', 'authName'].forEach(id => {
     document.getElementById(id)?.addEventListener('keydown', e => {
       if (e.key === 'Enter') handleEmailAuth();
     });
   });
 
-  // Enter nos campos de lançamento (desktop)
+  // Enter nos campos de despesa (desktop)
   ['desc', 'valor'].forEach(id => {
     document.getElementById(id)?.addEventListener('keydown', e => {
       if (e.key === 'Enter') addExpense();
     });
   });
 
-  // Enter nos campos da meta (desktop)
+  // Enter nos campos de receita (desktop)
+  ['incDesc', 'incValor'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addIncome();
+    });
+  });
+
+  // Enter nos campos de meta (desktop)
   ['goalName', 'goalTarget', 'goalSaved'].forEach(id => {
     document.getElementById(id)?.addEventListener('keydown', e => {
       if (e.key === 'Enter') addGoal();
     });
+  });
+
+  // Data padrão dos formulários
+  const t = today();
+  ['dataGasto', 'incData'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = t;
   });
 
   // Swipe down para fechar sheets (mobile)
@@ -69,11 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   });
 
-  // Registrar Service Worker (PWA offline)
+  // Registrar Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 
-  // Inicializa Firebase (que por sua vez controla qual tela exibir)
   initFirebase();
 });
