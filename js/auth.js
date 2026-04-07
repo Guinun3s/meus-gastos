@@ -83,7 +83,7 @@ async function handleForgotPassword() {
 async function handleSignOut() {
   document.querySelectorAll('.modal-bg, .sheet-bg').forEach(el => el.classList.remove('open'));
   if (_unsubscribe) _unsubscribe();
-  _cache = { expenses: {}, balances: {}, budgets: {} };
+  _cache = { expenses: {}, incomes: {}, budgets: {}, goals: [] };
   await _auth.signOut();
 }
 
@@ -140,11 +140,7 @@ function updateUserUI(user) {
 }
 
 function syncBothBalanceInputs() {
-  const bal = loadBal() || '';
-  ['balanceInput', 'balanceInputM'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el !== document.activeElement) el.value = bal;
-  });
+  // Saldo agora vem das receitas lançadas — não há mais campo de saldo manual
 }
 
 // ── Inicializa Firebase e escuta mudanças de autenticação ────
