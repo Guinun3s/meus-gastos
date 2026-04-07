@@ -1,4 +1,5 @@
-const CACHE = 'gastos-v1';
+const CACHE = 'gastos-v4';
+
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -23,7 +24,31 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
+
+  // HTML → sempre busca na rede primeiro (garante atualização)
+  if (e.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // JS/CSS/fontes → cache primeiro, mas atualiza em background
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => cached))
+    caches.match(e.request).then(cached => {
+      const network = fetch(e.request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      });
+      return cached || network;
+    })
   );
 });
