@@ -1,0 +1,47 @@
+name: Deploy para GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Gerar versão do cache com SHA do commit
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          echo "Cache version: gastos-$SHA"
+          sed -i "s/const CACHE = 'gastos-[^']*'/const CACHE = 'gastos-$SHA'/" sw.js
+
+      - name: Verificar sw.js atualizado
+        run: grep "const CACHE" sw.js
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Fazer upload dos arquivos
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
