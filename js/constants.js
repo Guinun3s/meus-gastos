@@ -13,7 +13,7 @@ const CATS = [
   { id: 'alimentacao',  name: 'Alimentação / Delivery', color: '#f08860' },
   { id: 'saude',        name: 'Saúde / Farmácia',       color: '#f060a0' },
   { id: 'vestuario',    name: 'Roupas / Calçados',      color: '#f06060' },
-  { id: 'contas',       name: 'Contas mensais',       color: '#808088' },
+  { id: 'contas',       name: 'Água / Luz / Gás',       color: '#808088' },
   { id: 'assinatura',   name: 'Assinaturas',            color: '#60c8f0' },
   { id: 'educacao',     name: 'Educação / Cursos',      color: '#9060f0' },
   { id: 'investimento', name: 'Investimentos',          color: '#c8f060' },
