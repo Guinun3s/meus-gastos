@@ -116,4 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initFirebase();
+  // Notificações inicializadas após Firebase (dados já carregados)
+  setTimeout(initNotifications, 3000);
 });

@@ -90,6 +90,7 @@ function addSavedAmount(id) {
   if (!g) return;
   g.saved = (parseFloat(g.saved) || 0) + val;
   saveGoals(goals);
+  checkGoalAlerts(goals);
 
   // 2. Registra um lançamento no mês atual para descontar do saldo
   //    Categoria: investimento | Descrição: "Meta: [nome]"
