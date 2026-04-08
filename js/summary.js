@@ -90,30 +90,33 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
     html += `</div>`;
   }
 
-  // Bloco de cartões — só se houver cartões cadastrados
-  const cards = loadCards();
+  // Bloco de cartões — calcula gastos internamente sem depender de cards.js
+  const cards = _cache.cards || [];
   if (cards.length) {
-    html += `<div class="m-cat-title">💳 cartões</div><div class="m-cards-home">`;
-    html += cards.map(c => {
-      const gasto  = cardGastosMes(c.id);
+    const allExps = _cache.expenses[mKey()] || [];
+    html += '<div class="m-cat-title">💳 cartões</div>';
+    cards.forEach(c => {
+      const gasto  = allExps.filter(e => e.pay === 'credito' && e.cardId === c.id)
+                            .reduce((s, e) => s + e.valor, 0);
       const pct    = c.limit > 0 ? Math.min(100, Math.round(gasto / c.limit * 100)) : 0;
       const danger = pct >= 80;
       const barColor = danger ? 'var(--red)' : c.color;
       const valColor = danger ? 'var(--red)' : c.color;
-      return `<div class="m-card-home-row">
-        <div class="m-card-home-top">
-          <span class="m-card-home-name" style="color:${c.color}">${c.name}</span>
-          <span class="m-card-home-val" style="color:${valColor}">${fmt(gasto)} <span class="m-card-home-limit">/ ${fmt(c.limit)}</span></span>
+      html += `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:500;color:${c.color}">${c.name}</span>
+          <span style="font-size:12px;font-family:var(--mono);color:${valColor}">${fmt(gasto)}
+            <span style="font-size:10px;color:var(--text3)">/ ${fmt(c.limit)}</span>
+          </span>
         </div>
         <div class="bar-bg">
           <div class="bar-fill" style="width:${pct}%;background:${barColor}"></div>
         </div>
-        <div class="m-card-home-pct" style="color:${danger ? 'var(--red)' : 'var(--text3)'}">
+        <div style="font-size:10px;color:${danger ? 'var(--red)' : 'var(--text3)'};margin-top:3px">
           ${pct}% do limite${danger ? ' ⚠' : ''}
         </div>
       </div>`;
-    }).join('');
-    html += `</div>`;
+    });
   }
 
   el.innerHTML = html;
@@ -172,10 +175,12 @@ function renderSidebar() {
   // Cartões na sidebar
   const scards = document.getElementById('sidebarCards');
   if (scards) {
-    const cards = loadCards();
+    const cards = _cache.cards || [];
+    const allExpsS = _cache.expenses[mKey()] || [];
     if (cards.length) {
       scards.innerHTML = cards.map(c => {
-        const gasto  = cardGastosMes(c.id);
+        const gasto  = allExpsS.filter(e => e.pay === 'credito' && e.cardId === c.id)
+                               .reduce((s, e) => s + e.valor, 0);
         const pct    = c.limit > 0 ? Math.min(100, Math.round(gasto / c.limit * 100)) : 0;
         const danger = pct >= 80;
         const barColor = danger ? 'var(--red)' : c.color;
