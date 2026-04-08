@@ -79,6 +79,27 @@ function closeCardForm() {
   else            closeModal('modalCard');
 }
 
+
+// ── Cálculo automático do fechamento a partir do vencimento ───
+// Fechamento = vencimento - 7 dias (com wrap para mês anterior)
+function onDueChange(el) {
+  const due = parseInt(el.value);
+  if (isNaN(due) || due < 1 || due > 31) return;
+
+  let closing = due - 7;
+  if (closing <= 0) {
+    // Cruza para o mês anterior — usa 30 como base genérica
+    // (ex: vence dia 5 → fecha dia 28/29/30 dependendo do mês)
+    closing = 30 + closing;
+  }
+
+  // Atualiza ambos os campos (desktop e mobile) exceto o que está em foco
+  ['cardClosing', 'cardClosingM'].forEach(id => {
+    const field = document.getElementById(id);
+    if (field && field !== document.activeElement) field.value = closing;
+  });
+}
+
 function saveCard() {
   const name    = _cardVal('cardName').trim();
   const limit   = parseFloat(_cardVal('cardLimit'));

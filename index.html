@@ -632,11 +632,12 @@
     <div class="modal-2col">
       <div class="modal-field">
         <label class="modal-label">Dia de fechamento</label>
-        <input class="finput" type="number" id="cardClosing" placeholder="ex: 15" min="1" max="31" />
+        <input class="finput" type="number" id="cardClosing" placeholder="auto" min="1" max="31" />
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">calculado do vencimento — editável</div>
       </div>
       <div class="modal-field">
         <label class="modal-label">Dia de vencimento</label>
-        <input class="finput" type="number" id="cardDue" placeholder="ex: 5" min="1" max="31" />
+        <input class="finput" type="number" id="cardDue" placeholder="ex: 5" min="1" max="31" oninput="onDueChange(this)" />
       </div>
     </div>
     <div class="modal-actions">
@@ -753,15 +754,13 @@
       <label class="m-flabel">Limite (R$)</label>
       <input class="m-finput" type="number" id="cardLimitM" placeholder="0,00" step="100" min="0" inputmode="decimal" />
     </div>
-    <div class="form-2col">
-      <div class="form-field">
-        <label class="m-flabel">Fechamento (dia)</label>
-        <input class="m-finput" type="number" id="cardClosingM" placeholder="15" min="1" max="31" inputmode="numeric" />
-      </div>
-      <div class="form-field">
-        <label class="m-flabel">Vencimento (dia)</label>
-        <input class="m-finput" type="number" id="cardDueM" placeholder="5" min="1" max="31" inputmode="numeric" />
-      </div>
+    <div class="form-field">
+      <label class="m-flabel">Vencimento (dia)</label>
+      <input class="m-finput" type="number" id="cardDueM" placeholder="ex: 5" min="1" max="31" inputmode="numeric" oninput="onDueChange(this)" />
+    </div>
+    <div class="form-field">
+      <label class="m-flabel">Fechamento (dia) <span style="font-size:10px;color:var(--text3)">— calculado, editável</span></label>
+      <input class="m-finput" type="number" id="cardClosingM" placeholder="auto" min="1" max="31" inputmode="numeric" />
     </div>
     <div class="form-field" style="margin-bottom:16px">
       <label class="m-flabel">Cor</label>
