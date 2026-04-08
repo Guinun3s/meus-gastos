@@ -20,14 +20,14 @@ function cardGastosMes(cardId, key) {
              .reduce((s, e) => s + e.valor, 0);
 }
 
-// ── Leitura dos campos (resolve IDs desktop vs mobile) ────────
-// Detecta pelo sheet aberto, não por largura de tela (mais confiável)
-function _cardField(baseId) {
-  const sheetOpen = document.getElementById('sheetCard')?.classList.contains('open');
-  if (sheetOpen) {
-    return document.getElementById(baseId + 'M') || document.getElementById(baseId);
-  }
-  return document.getElementById(baseId) || document.getElementById(baseId + 'M');
+// ── Leitura dos campos (mobile tem sufixo M, desktop sem sufixo) ─
+// Lê o campo M se tiver valor, senão lê o desktop — sem depender de isMobile()
+function _cardVal(baseId) {
+  const mEl = document.getElementById(baseId + 'M');
+  const dEl = document.getElementById(baseId);
+  // Prefere o campo M se existir e tiver conteúdo
+  if (mEl && mEl.value !== '') return mEl.value;
+  return dEl ? dEl.value : '';
 }
 
 // ── Formulário ────────────────────────────────────────────────
@@ -80,10 +80,10 @@ function closeCardForm() {
 }
 
 function saveCard() {
-  const name    = (_cardField('cardName')?.value    || '').trim();
-  const limit   = parseFloat(_cardField('cardLimit')?.value);
-  const closing = parseInt(_cardField('cardClosing')?.value);
-  const due     = parseInt(_cardField('cardDue')?.value);
+  const name    = _cardVal('cardName').trim();
+  const limit   = parseFloat(_cardVal('cardLimit'));
+  const closing = parseInt(_cardVal('cardClosing'));
+  const due     = parseInt(_cardVal('cardDue'));
 
   if (!name)                           { toast('Informe o nome do cartão.'); return; }
   if (isNaN(limit) || limit <= 0)      { toast('Informe o limite.');         return; }
