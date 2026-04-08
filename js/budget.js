@@ -37,7 +37,9 @@ function renderBudget() {
       : '';
 
     return `<div class="brow">
-      <div class="bdot" style="background:${c.color}"></div>
+      ${isNeonTheme()
+        ? `<span class="neon-budget-icon">${catIconSVG(c.id)}</span>`
+        : `<div class="bdot" style="background:${c.color}"></div>`}
       <div class="bname">${c.name} ${alertBadge}</div>
       <div class="bspent">gasto: ${fmt(s)}</div>
       <input class="binput" type="number" min="0" step="10" placeholder="Sem limite"

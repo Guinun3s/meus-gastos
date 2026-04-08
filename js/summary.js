@@ -77,9 +77,12 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
     html += `<div class="m-cat-title">por categoria</div><div class="m-cat-list">`;
     html += active.map(c => {
       const p = grand > 0 ? Math.round(ct[c.id] / grand * 100) : 0;
+      const iconHtml = isNeonTheme()
+        ? `<span class="neon-cat-mini">${catIconSVG(c.id)}</span>`
+        : `<span class="m-cat-dot" style="background:${c.color}"></span>`;
       return `<div class="m-cat-row">
         <div class="m-cat-top">
-          <span class="m-cat-name">${c.name}</span>
+          <span style="display:flex;align-items:center;gap:6px">${iconHtml}<span class="m-cat-name">${c.name}</span></span>
           <span class="m-cat-amt">${fmt(ct[c.id])}</span>
         </div>
         <div class="bar-bg">
@@ -159,9 +162,12 @@ function renderSidebar() {
     sc.innerHTML = active.length
       ? active.map(c => {
           const p = grand > 0 ? Math.round(ct[c.id] / grand * 100) : 0;
-          return `<div>
+          const iconHtml = isNeonTheme()
+            ? `<span class="neon-sidebar-icon">${catIconSVG(c.id)}</span>`
+            : `<span class="scat-dot" style="background:${c.color}"></span>`;
+          return `<div style="margin-bottom:6px">
             <div class="scat-top">
-              <span class="scat-name">${c.name}</span>
+              <span style="display:flex;align-items:center;gap:5px">${iconHtml}<span class="scat-name">${c.name}</span></span>
               <span class="scat-val">${fmt(ct[c.id])}</span>
             </div>
             <div class="sbar-bg">

@@ -563,16 +563,11 @@ function _renderDesktopTable(list) {
   }
 
   tbody.innerHTML = list.map(e => {
-    const cat = catById(e.cat);
-    const pc  = PAY_COLORS[e.pay] || '#585860';
-    const pl  = PAY_LABELS[e.pay] || e.pay || '—';
     const goalPin = e.cat === 'meta' ? ' <span style="font-size:10px;opacity:.55">🎯</span>' : '';
     return `<tr>
       <td>${e.desc}${goalPin}${_typeBadge(e)}</td>
-      <td><span class="pill" style="background:${cat.color}1a;color:${cat.color}">
-        <span class="pdot" style="background:${cat.color}"></span>${cat.name}</span></td>
-      <td><span class="pill" style="background:${pc}1a;color:${pc}">
-        <span class="pdot" style="background:${pc}"></span>${pl}</span></td>
+      <td>${catPill(e.cat)}</td>
+      <td>${payPill(e.pay)}</td>
       <td class="td-date">${fmtDate(e.data)}</td>
       <td class="td-r">${fmt(e.valor)}</td>
       <td>
@@ -593,18 +588,13 @@ function _renderMobileCards(list) {
   }
 
   el.innerHTML = list.map(e => {
-    const cat     = catById(e.cat);
-    const pc      = PAY_COLORS[e.pay] || '#585860';
-    const pl      = PAY_LABELS[e.pay] || e.pay || '—';
     const goalPin = e.cat === 'meta' ? ' ★' : '';
     return `<div class="m-exp-card">
       <div class="m-exp-desc">${e.desc}${goalPin}${_typeBadge(e)}</div>
       <div class="m-exp-valor">${fmt(e.valor)}</div>
       <div class="m-exp-meta">
-        <span class="pill" style="background:${cat.color}1a;color:${cat.color}">
-          <span class="pdot" style="background:${cat.color}"></span>${cat.name}</span>
-        <span class="pill" style="background:${pc}1a;color:${pc}">
-          <span class="pdot" style="background:${pc}"></span>${pl}</span>
+        ${catPill(e.cat)}
+        ${payPill(e.pay)}
       </div>
       <div class="m-exp-foot">
         <span class="m-exp-date">${fmtDate(e.data)}</span>

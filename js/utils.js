@@ -75,3 +75,41 @@ function setSyncStatus(s) {
     error:   'Erro de sincronização',
   }[s] || '';
 }
+
+// ── Renderização de pills com suporte a tema neon ─────────────
+// Gera o HTML de uma pill de categoria
+function catPill(catId) {
+  const cat = catById(catId);
+  if (isNeonTheme()) {
+    return `<span class="pill neon-pill">
+      <span class="neon-icon">${catIconSVG(catId)}</span>
+      <span>${cat.name}</span>
+    </span>`;
+  }
+  return `<span class="pill" style="background:${cat.color}1a;color:${cat.color}">
+    <span class="pdot" style="background:${cat.color}"></span>${cat.name}
+  </span>`;
+}
+
+// Gera o HTML de uma pill de pagamento
+function payPill(payId) {
+  const pc = PAY_COLORS[payId] || '#585860';
+  const pl = PAY_LABELS[payId] || payId || '—';
+  if (isNeonTheme()) {
+    return `<span class="pill neon-pill">
+      <span class="neon-icon">${payIconSVG(payId)}</span>
+      <span>${pl}</span>
+    </span>`;
+  }
+  return `<span class="pill" style="background:${pc}1a;color:${pc}">
+    <span class="pdot" style="background:${pc}"></span>${pl}
+  </span>`;
+}
+
+// Gera um dot/ícone de categoria para sidebar/home
+function catDot(catId, color) {
+  if (isNeonTheme()) {
+    return `<span class="neon-sidebar-icon">${catIconSVG(catId)}</span>`;
+  }
+  return `<div class="bdot" style="background:${color}"></div>`;
+}

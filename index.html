@@ -94,6 +94,7 @@
       <button class="tbtn d-only" onclick="openExport()">&#8595; CSV</button>
       <button class="tbtn d-only" onclick="openImportModal()">&#8593; Importar</button>
       <button class="tbtn d-only" onclick="openNotifSettings()" title="Notificações">🔔</button>
+      <button class="tbtn d-only" onclick="openThemeModal()" title="Tema">🎨</button>
       <button class="user-btn d-only" onclick="openModal('modalUser')">
         <div class="user-avatar" id="topAvatar"></div>
         <span class="user-email" id="topEmail"></span>
@@ -430,33 +431,33 @@
 
 
   <!-- NAV INFERIOR + FAB (mobile) -->
-  <nav class="bottom-nav m-only">
+  <nav class="bottom-nav m-only" id="bottomNav">
     <button class="nav-btn active" onclick="switchMobilePage('home', this)">
-      <span class="nav-icon">⌂</span><span class="nav-label">Início</span>
+      <span class="nav-icon nav-svg" data-nav="home">⌂</span><span class="nav-label">Início</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('lancamentos', this)">
-      <span class="nav-icon">≡</span><span class="nav-label">Gastos</span>
+      <span class="nav-icon nav-svg" data-nav="lancamentos">≡</span><span class="nav-label">Gastos</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('receitas', this)">
-      <span class="nav-icon">↑</span><span class="nav-label">Receitas</span>
+      <span class="nav-icon nav-svg" data-nav="receitas">↑</span><span class="nav-label">Receitas</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('graficos', this)">
-      <span class="nav-icon">◎</span><span class="nav-label">Gráficos</span>
+      <span class="nav-icon nav-svg" data-nav="graficos">◎</span><span class="nav-label">Gráficos</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('historico', this)">
-      <span class="nav-icon">⏱</span><span class="nav-label">Histórico</span>
+      <span class="nav-icon nav-svg" data-nav="historico">⏱</span><span class="nav-label">Histórico</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('orcamento', this)">
-      <span class="nav-icon">◈</span><span class="nav-label">Orçamento</span>
+      <span class="nav-icon nav-svg" data-nav="orcamento">◈</span><span class="nav-label">Orçamento</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('metas', this)">
-      <span class="nav-icon">★</span><span class="nav-label">Metas</span>
+      <span class="nav-icon nav-svg" data-nav="metas">★</span><span class="nav-label">Metas</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('compromissos', this)">
-      <span class="nav-icon">⊟</span><span class="nav-label">Fixos</span>
+      <span class="nav-icon nav-svg" data-nav="compromissos">⊟</span><span class="nav-label">Fixos</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('cartoes', this)">
-      <span class="nav-icon">💳</span><span class="nav-label">Cartões</span>
+      <span class="nav-icon nav-svg" data-nav="cartoes">💳</span><span class="nav-label">Cartões</span>
     </button>
   </nav>
 
@@ -606,6 +607,36 @@
       <button class="del-btn-opt danger" id="delBtnB"></button>
     </div>
     <button class="del-btn-cancel" onclick="closeModal('modalDelete')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal: tema -->
+<div class="modal-bg" id="modalTheme">
+  <div class="modal" style="max-width:320px">
+    <h3>🎨 Tema visual</h3>
+    <div class="theme-opts">
+      <button class="theme-opt-btn active" data-theme-opt="classic" onclick="applyTheme('classic')">
+        <div class="theme-preview-box classic-preview">
+          <div class="tp-bg"></div>
+          <div class="tp-accent"></div>
+          <div class="tp-pill"></div>
+        </div>
+        <div class="theme-opt-label">🌑 Classic</div>
+        <div class="theme-opt-desc">Dark com verde lima</div>
+      </button>
+      <button class="theme-opt-btn" data-theme-opt="neon" onclick="applyTheme('neon')">
+        <div class="theme-preview-box neon-preview">
+          <div class="tp-bg"></div>
+          <div class="tp-accent"></div>
+          <div class="tp-pill"></div>
+        </div>
+        <div class="theme-opt-label">✨ Neon</div>
+        <div class="theme-opt-desc">Dark com ícones glow</div>
+      </button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn-p" onclick="closeModal('modalTheme')">Fechar</button>
+    </div>
   </div>
 </div>
 
@@ -886,6 +917,9 @@
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openNotifSettings()">
       <span class="menu-icon">🔔</span> Notificações
     </button>
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); openThemeModal()">
+      <span class="menu-icon">🎨</span> Tema
+    </button>
     <button class="menu-item danger" onclick="handleSignOut()">
       <span class="menu-icon">→</span> Sair da conta
     </button>
@@ -932,6 +966,8 @@
              → navigation → features → app
 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/themes.js"></script>
 <script src="js/constants.js"></script>
 <script src="js/state.js"></script>
 <script src="js/utils.js"></script>
