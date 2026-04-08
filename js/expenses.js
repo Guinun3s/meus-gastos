@@ -344,6 +344,7 @@ function _addExpense(desc, valor, cat, pay, data, goalId = null, cardId = null) 
     if (!goal) { toast('Meta não encontrada.'); return false; }
     goal.saved = (parseFloat(goal.saved) || 0) + valor;
     saveGoals(goals);
+    checkGoalAlerts(goals);
   }
 
   const list  = loadExp();
