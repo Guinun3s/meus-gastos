@@ -300,10 +300,31 @@ function saveEditExpense() {
 function _adjustGoalSaved(goalId, delta) {
   if (!goalId || !delta) return;
   const goals = loadGoals();
-  const goal  = goals.find(g => g.id === goalId);
+  // Usa Number() para evitar mismatch de tipo (string vs number do Firestore)
+  const goal  = goals.find(g => Number(g.id) === Number(goalId));
   if (!goal) return;
   goal.saved = Math.max(0, (parseFloat(goal.saved) || 0) + delta);
   saveGoals(goals);
+}
+
+// Decrementa goal.saved ao deletar um lançamento de meta
+// Suporta: goalId explícito (novo) e fallback por descrição (lançamentos antigos sem goalId)
+function _decrementGoalForExpense(exp) {
+  if (!exp || exp.cat !== 'meta') return;
+
+  if (exp.goalId) {
+    _adjustGoalSaved(exp.goalId, -exp.valor);
+    return;
+  }
+
+  // Fallback: busca a meta pelo nome na descrição ("Meta: Nome da Meta")
+  const prefix = 'Meta: ';
+  if (exp.desc && exp.desc.startsWith(prefix)) {
+    const goalName = exp.desc.slice(prefix.length);
+    const goals = loadGoals();
+    const goal  = goals.find(g => g.name === goalName);
+    if (goal) _adjustGoalSaved(goal.id, -exp.valor);
+  }
 }
 
 function deleteExpense(id) {
@@ -314,7 +335,7 @@ function deleteExpense(id) {
     openDeleteModal(
       '🔄 Lançamento recorrente',
       'Como deseja remover?',
-      'Só este mês',     () => { if (exp.goalId) _adjustGoalSaved(exp.goalId, -exp.valor); saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Removido.'); },
+      'Só este mês',     () => { _decrementGoalForExpense(exp); saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Removido.'); },
       'Este e os futuros', () => {
         // Subtrai todos os futuros vinculados à meta
         if (exp.goalId) {
@@ -332,12 +353,12 @@ function deleteExpense(id) {
     openDeleteModal(
       `📦 Parcela ${exp.installmentN}/${exp.installmentTotal}`,
       'Como deseja remover?',
-      'Só esta parcela', () => { if (exp.goalId) _adjustGoalSaved(exp.goalId, -exp.valor); saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Parcela removida.'); },
+      'Só esta parcela', () => { _decrementGoalForExpense(exp); saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Parcela removida.'); },
       'Todas as parcelas', () => { _deleteAllInstallments(exp.installmentId); render(); toast('Parcelamento removido.'); }
     );
   } else {
     if (!confirm('Remover este lançamento?')) return;
-    if (exp.goalId) _adjustGoalSaved(exp.goalId, -exp.valor);
+    _decrementGoalForExpense(exp);
     saveExp(loadExp().filter(e => e.id !== id));
     render();
     toast('Removido.');
