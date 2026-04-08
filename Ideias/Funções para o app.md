@@ -2,13 +2,13 @@
 
 
 
-Recorrências — marcar uma despesa como recorrente (aluguel, assinatura) e ela aparecer automaticamente todo mês
+~~Recorrências — marcar uma despesa como recorrente (aluguel, assinatura) e ela aparecer automaticamente todo mês~~
 
-Parcelamentos — lançar uma compra em X parcelas e o app distribuir automaticamente nos meses seguintes
+~~Parcelamentos — lançar uma compra em X parcelas e o app distribuir automaticamente nos meses seguintes~~
 
 ~~Receitas — hoje o app só rastreia gastos; adicionar entradas permitiria calcular saldo real do mês~~
 
-Cartões de crédito — agrupar gastos por cartão com data de fechamento/vencimento
+~~Cartões de crédito — agrupar gastos por cartão com data de fechamento/vencimento~~
 
 
 

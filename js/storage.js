@@ -39,7 +39,13 @@ function calcGastosDinheiro() { return loadExp().filter(e => e.pay === "dinheiro
 
 function calcSaldoBanco()    { return calcReceitaBanco()    - calcGastosBanco(); }
 function calcSaldoDinheiro() { return calcReceitaDinheiro() - calcGastosDinheiro(); }
-function calcSaldoReal()     { return calcReceitaTotal()    - loadExp().reduce((s, e) => s + e.valor, 0); }
+// Saldo real exclui gastos no crédito (dívida futura) — só conta quando a fatura é paga
+function calcSaldoReal() {
+  const gastosSemCredito = loadExp()
+    .filter(e => e.pay !== 'credito')
+    .reduce((s, e) => s + e.valor, 0);
+  return calcReceitaTotal() - gastosSemCredito;
+}
 
 // ── Totais por categoria ──────────────────────────────────────
 function catTotals() {

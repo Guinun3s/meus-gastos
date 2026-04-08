@@ -193,7 +193,8 @@ function saveExpenseMobile() {
   const cardId = pay === 'credito' ? (parseInt(document.getElementById('mCardSelect')?.value) || null) : null;
 
   if (_editingId !== null) {
-    _updateExpense(_editingId, desc, valor, cat, pay, data);
+    const editCardId = pay === 'credito' ? (parseInt(document.getElementById('mCardSelect')?.value) || null) : null;
+    _updateExpense(_editingId, desc, valor, cat, pay, data, editCardId);
     closeSheet('sheetAdd');
   } else {
     if (_dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId)) {
@@ -246,12 +247,21 @@ function openEditExpense(id) {
     document.getElementById('mValor').value     = exp.valor;
     document.getElementById('mDataGasto').value = exp.data;
     document.getElementById('mCatSelect').value = exp.cat;
-    document.getElementById('mPaySelect').value = exp.pay;
     document.getElementById('mExpType').value   = 'normal';
     document.getElementById('mExpTypeExtra').style.display = 'none';
     const wrap = document.getElementById('mGoalLinkWrap');
     if (wrap) wrap.style.display = exp.cat === 'meta' ? 'flex' : 'none';
     if (exp.cat === 'meta') _fillGoalLinkSelect('mGoalLink');
+
+    // Pagamento + seletor de cartão
+    const mPay = document.getElementById('mPaySelect');
+    mPay.value = exp.pay;
+    onPayChange(mPay);
+    if (exp.pay === 'credito' && exp.cardId) {
+      const mCard = document.getElementById('mCardSelect');
+      if (mCard) mCard.value = exp.cardId;
+    }
+
     _setSheetAddMode('edit');
     openSheet('sheetAdd');
   } else {
@@ -259,19 +269,29 @@ function openEditExpense(id) {
     document.getElementById('editValor').value     = exp.valor;
     document.getElementById('editData').value      = exp.data;
     document.getElementById('editCatSelect').value = exp.cat;
-    document.getElementById('editPaySelect').value = exp.pay;
+
+    // Pagamento + seletor de cartão
+    const editPay = document.getElementById('editPaySelect');
+    editPay.value = exp.pay;
+    onPayChange(editPay);
+    if (exp.pay === 'credito' && exp.cardId) {
+      const editCard = document.getElementById('editCardSelect');
+      if (editCard) editCard.value = exp.cardId;
+    }
+
     openModal('modalEdit');
   }
 }
 
 // ── Salvar edição (desktop modal) ────────────────────────────
 function saveEditExpense() {
-  const desc  = document.getElementById('editDesc').value.trim();
-  const valor = parseFloat(document.getElementById('editValor').value);
-  const cat   = document.getElementById('editCatSelect').value;
-  const pay   = document.getElementById('editPaySelect').value;
-  const data  = document.getElementById('editData').value || today();
-  _updateExpense(_editingId, desc, valor, cat, pay, data);
+  const desc   = document.getElementById('editDesc').value.trim();
+  const valor  = parseFloat(document.getElementById('editValor').value);
+  const cat    = document.getElementById('editCatSelect').value;
+  const pay    = document.getElementById('editPaySelect').value;
+  const data   = document.getElementById('editData').value || today();
+  const cardId = pay === 'credito' ? (parseInt(document.getElementById('editCardSelect')?.value) || null) : null;
+  _updateExpense(_editingId, desc, valor, cat, pay, data, cardId);
   closeModal('modalEdit');
 }
 
@@ -418,10 +438,17 @@ function _deleteAllInstallments(iid) {
   scheduleSync();
 }
 
-function _updateExpense(id, desc, valor, cat, pay, data) {
+function _updateExpense(id, desc, valor, cat, pay, data, cardId = null) {
   if (!desc || isNaN(valor) || valor <= 0) { toast('Preencha descrição e valor.'); return; }
   const list = loadExp()
-    .map(e => e.id === id ? { ...e, desc, valor, cat, pay, data } : e)
+    .map(e => {
+      if (e.id !== id) return e;
+      const updated = { ...e, desc, valor, cat, pay, data };
+      // Atualiza cardId: define se crédito, remove se mudou para outro pagamento
+      if (pay === 'credito' && cardId) updated.cardId = cardId;
+      else delete updated.cardId;
+      return updated;
+    })
     .sort((a, b) => b.data.localeCompare(a.data));
   saveExp(list);
   _editingId = null;
