@@ -1210,97 +1210,259 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
   background: #0e0e0f;
 }
 
+
 /* ════════════════════════════════════════════════
-   TEMA NEON — variáveis e overrides
+   TEMA NEON — variáveis, overrides e componentes
+   Fiel ao design de referência
 ════════════════════════════════════════════════ */
 
 [data-theme="neon"] {
-  --bg:      #050510;
-  --bg2:     #0a0a1a;
-  --bg3:     #10102a;
-  --bg4:     #18183a;
-  --line:    #20204a;
-  --line2:   #2a2a5a;
-  --text:    #e0e0ff;
-  --text1:   #e0e0ff;
-  --text2:   #8080c0;
-  --text3:   #50506a;
-  --card:    #10102a;
-  --border:  #20204a;
-  --hover:   #18183a;
-  --accent:  #a078ff;
-  --red:     #ff5080;
+  --bg:      #07070f;
+  --bg2:     #0c0c1a;
+  --bg3:     #111128;
+  --bg4:     #181834;
+  --line:    #1e1e40;
+  --line2:   #28285a;
+  --text:    #e8e8ff;
+  --text1:   #e8e8ff;
+  --text2:   #8888c0;
+  --text3:   #48487a;
+  --card:    #0f0f24;
+  --border:  #1e1e40;
+  --hover:   #161630;
+  --accent:  #7c5cff;
+  --red:     #ff4d6d;
   --red-dim: #3a0a20;
   --amber:   #ffb040;
 }
 
-/* Cards com borda gradiente sutil no neon */
-[data-theme="neon"] .card {
-  border: 1px solid rgba(160,120,255,0.2);
-  background: linear-gradient(135deg, #10102a 0%, #12103a 100%);
+/* ── Cards de resumo (neon) ────────────────────── */
+[data-theme="neon"] .cards {
+  gap: 12px;
 }
 
-/* Pills neon */
-[data-theme="neon"] .neon-pill {
+[data-theme="neon"] .card {
+  background: #0f0f24;
+  border: 1px solid #1e1e40;
+  border-radius: 14px;
+  padding: 18px 20px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="neon"] .card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .04;
+  pointer-events: none;
+}
+
+/* Labels coloridas nos cards */
+[data-theme="neon"] .card:nth-child(1) .card-label { color: #40d090; font-weight: 600; letter-spacing: .06em; }
+[data-theme="neon"] .card:nth-child(2) .card-label { color: #ff8040; font-weight: 600; letter-spacing: .06em; }
+[data-theme="neon"] .card:nth-child(3) .card-label { color: #40c0d0; font-weight: 600; letter-spacing: .06em; }
+[data-theme="neon"] .card:nth-child(4) .card-label { color: #a060ff; font-weight: 600; letter-spacing: .06em; }
+
+[data-theme="neon"] .card:nth-child(1) .card-val { color: #40d090; }
+[data-theme="neon"] .card:nth-child(2) .card-val { color: #ff8040; }
+[data-theme="neon"] .card:nth-child(3) .card-val { color: #40c0d0; }
+[data-theme="neon"] .card:nth-child(4) .card-val { color: #a060ff; }
+
+[data-theme="neon"] .card-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 8px;
+}
+
+[data-theme="neon"] .card-val {
+  font-size: 22px;
+  font-weight: 600;
+  font-family: var(--mono);
+  margin-bottom: 4px;
+}
+
+[data-theme="neon"] .card-sub {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ── Abas (neon): underline style ──────────────── */
+[data-theme="neon"] .tabs {
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+  gap: 0;
+  border-radius: 0;
+}
+
+[data-theme="neon"] .tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 10px 16px;
+  color: var(--text3);
+  font-size: 13px;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+
+[data-theme="neon"] .tab:hover { color: var(--text2); }
+
+[data-theme="neon"] .tab.active {
+  color: var(--text1);
+  border-bottom-color: var(--accent);
+  background: transparent;
+}
+
+/* ── Tabela (neon): avatar circle + row hover ──── */
+[data-theme="neon"] table thead tr {
+  background: transparent;
+}
+
+[data-theme="neon"] table thead th {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+}
+
+[data-theme="neon"] table tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background .12s;
+}
+
+[data-theme="neon"] table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+[data-theme="neon"] table tbody td {
+  padding: 11px 12px;
+}
+
+/* Avatar circular na primeira coluna */
+[data-theme="neon"] .neon-avatar {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
+}
+
+[data-theme="neon"] .neon-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  font-family: var(--sans);
+}
+
+/* ── Pills (neon): dot + texto colorido ─────────── */
+[data-theme="neon"] .pill {
+  border: none;
+  background: transparent;
+  padding: 3px 10px 3px 6px;
+  border-radius: 20px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+[data-theme="neon"] .neon-pill {
   background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 20px;
   padding: 2px 8px 2px 2px;
   font-size: 11px;
   color: var(--text2);
-}
-
-.neon-icon {
   display: inline-flex;
   align-items: center;
-}
-.neon-icon svg {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
+  gap: 4px;
 }
 
-/* Ícone sidebar/home menor */
-.neon-sidebar-icon svg,
-.neon-cat-mini svg {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-}
-.neon-sidebar-icon,
-.neon-cat-mini {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
+.neon-icon { display: inline-flex; align-items: center; }
+.neon-icon svg { width: 22px; height: 22px; border-radius: 6px; }
+.neon-sidebar-icon svg, .neon-cat-mini svg { width: 20px; height: 20px; border-radius: 5px; }
+.neon-sidebar-icon, .neon-cat-mini { display: inline-flex; align-items: center; flex-shrink: 0; }
+.neon-budget-icon svg { width: 24px; height: 24px; border-radius: 6px; }
+.neon-budget-icon { display: inline-flex; align-items: center; flex-shrink: 0; }
+
+/* ── Formulário de adição (neon) ────────────────── */
+[data-theme="neon"] .form-row {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  gap: 10px;
 }
 
-/* Ícone no orçamento */
-.neon-budget-icon svg {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-}
-.neon-budget-icon {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
+[data-theme="neon"] .btn-add {
+  background: linear-gradient(135deg, #7c5cff, #5c3cdf);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 10px 18px;
+  box-shadow: 0 4px 16px rgba(124,92,255,0.3);
+  transition: filter .15s, transform .1s;
 }
 
-/* Nav icons SVG */
+[data-theme="neon"] .btn-add:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+/* ── Sidebar (neon) ─────────────────────────────── */
+[data-theme="neon"] .sidebar {
+  background: #0a0a1c;
+  border-right: 1px solid var(--border);
+}
+
+[data-theme="neon"] .s-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--text3);
+  font-weight: 600;
+}
+
+[data-theme="neon"] .brand {
+  background: linear-gradient(135deg, #a078ff, #60c8ff, #ff70b0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Barra de categoria (neon sidebar) ──────────── */
+[data-theme="neon"] .sbar-fill {
+  height: 3px;
+  border-radius: 99px;
+  filter: brightness(1.2);
+}
+
+/* ── Nav mobile (neon): SVG icons ───────────────── */
 [data-theme="neon"] .nav-svg svg {
   width: 22px;
   height: 22px;
   display: block;
   margin: 0 auto;
 }
-[data-theme="neon"] .nav-btn .nav-svg {
-  font-size: 0; /* hide text fallback */
-}
+[data-theme="neon"] .nav-btn .nav-svg { font-size: 0; }
+[data-theme="neon"] .nav-btn.active .nav-svg { filter: drop-shadow(0 0 6px rgba(160,120,255,0.6)); }
+[data-theme="neon"] .bottom-nav { background: rgba(7,7,15,0.95); backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.06); }
 
-/* Modal de tema */
+/* ── Modal de tema ──────────────────────────────── */
 .theme-opts {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1317,7 +1479,6 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
   transition: border-color .2s, transform .15s;
   text-align: left;
 }
-
 .theme-opt-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
 .theme-opt-btn.active { border-color: var(--accent); }
 
@@ -1334,33 +1495,27 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
 }
 
 .classic-preview { background: #0e0e0f; border: 1px solid #2a2a2e; }
-.neon-preview    { background: #050510; border: 1px solid #20204a; }
+.neon-preview    { background: #07070f; border: 1px solid #1e1e40; }
 
-.classic-preview .tp-bg   { width: 12px; height: 28px; background: #1c1c1f; border-radius: 3px; }
-.classic-preview .tp-accent{ flex:1; height: 14px; background: #c8f060; border-radius: 3px; opacity:.8; }
+.classic-preview .tp-bg    { width: 12px; height: 28px; background: #1c1c1f; border-radius: 3px; }
+.classic-preview .tp-accent { flex: 1; height: 14px; background: #c8f060; border-radius: 3px; opacity: .8; }
 .classic-preview .tp-pill  { width: 20px; height: 10px; background: #7ab6481a; border-radius: 5px; }
 
-.neon-preview .tp-bg    { width: 12px; height: 28px; background: #10102a; border-radius: 3px; }
-.neon-preview .tp-accent{ flex:1; height: 14px; background: linear-gradient(90deg,#a078ff,#60c0ff); border-radius: 3px; opacity:.9; }
-.neon-preview .tp-pill  { width: 20px; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; border: 1px solid rgba(255,255,255,0.1); }
+.neon-preview .tp-bg    { width: 12px; height: 28px; background: #0f0f24; border-radius: 3px; }
+.neon-preview .tp-accent { flex: 1; height: 14px; background: linear-gradient(90deg,#7c5cff,#40c8ff); border-radius: 3px; }
+.neon-preview .tp-pill  { width: 20px; height: 10px; background: rgba(124,92,255,0.2); border-radius: 5px; border: 1px solid rgba(124,92,255,0.4); }
 
 .theme-opt-label { font-size: 13px; font-weight: 600; color: var(--text1); margin-bottom: 2px; }
 .theme-opt-desc  { font-size: 10px; color: var(--text3); font-family: var(--mono); }
 
-/* Ponto de categoria na sidebar (dot clássico) */
-.scat-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+/* ── Toggle switch (notificações) ───────────────── */
+.toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: background .2s; }
+.toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; border-radius: 50%; background: var(--text3); transition: transform .2s, background .2s; }
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: #fff; }
 
-/* Ponto de categoria na home mobile */
-.m-cat-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+/* ── Ponto de categoria clássico ────────────────── */
+.scat-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.m-cat-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }

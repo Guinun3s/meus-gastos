@@ -3,6 +3,24 @@
 // Suporta: normal | recorrente (N meses) | parcelado (N parcelas)
 // ============================================================
 
+
+// Paleta de cores para avatares (neon theme)
+const AVATAR_PALETTE = [
+  {bg:'rgba(124,92,255,0.2)', color:'#a080ff'},
+  {bg:'rgba(255,80,64,0.2)',  color:'#ff7060'},
+  {bg:'rgba(64,208,144,0.2)', color:'#40d090'},
+  {bg:'rgba(64,192,208,0.2)', color:'#40c0d0'},
+  {bg:'rgba(255,160,64,0.2)', color:'#ffa040'},
+  {bg:'rgba(224,120,192,0.2)',color:'#e078c0'},
+  {bg:'rgba(96,168,255,0.2)', color:'#60a8ff'},
+  {bg:'rgba(255,200,64,0.2)', color:'#ffc840'},
+];
+
+function _avatarStyle(str) {
+  const idx = (str.charCodeAt(0) || 0) % AVATAR_PALETTE.length;
+  return AVATAR_PALETTE[idx];
+}
+
 // ── Reação à mudança de categoria ────────────────────────────
 function onCatChange(selectEl) {
   const cat    = selectEl.value;
@@ -564,8 +582,16 @@ function _renderDesktopTable(list) {
 
   tbody.innerHTML = list.map(e => {
     const goalPin = e.cat === 'meta' ? ' <span style="font-size:10px;opacity:.55">🎯</span>' : '';
+    const initial = (e.desc || '?')[0].toUpperCase();
+    const av = _avatarStyle(e.desc || '');
+    const descCell = isNeonTheme()
+      ? `<span class="neon-avatar">
+           <span class="neon-avatar-circle" style="background:${av.bg};color:${av.color}">${initial}</span>
+           <span>${e.desc}${goalPin}${_typeBadge(e)}</span>
+         </span>`
+      : `${e.desc}${goalPin}${_typeBadge(e)}`;
     return `<tr>
-      <td>${e.desc}${goalPin}${_typeBadge(e)}</td>
+      <td>${descCell}</td>
       <td>${catPill(e.cat)}</td>
       <td>${payPill(e.pay)}</td>
       <td class="td-date">${fmtDate(e.data)}</td>
