@@ -20,19 +20,54 @@ function cardGastosMes(cardId, key) {
              .reduce((s, e) => s + e.valor, 0);
 }
 
+// ── Leitura dos campos (resolve IDs desktop vs mobile) ────────
+function _cardField(baseId) {
+  if (isMobile()) {
+    const m = document.getElementById(baseId + 'M');
+    if (m) return m;
+  }
+  return document.getElementById(baseId);
+}
+
 // ── Formulário ────────────────────────────────────────────────
 function openCardForm(id) {
   _editingCardId = id || null;
   const card = id ? loadCards().find(c => c.id === id) : null;
 
-  document.getElementById('cardFormTitle').textContent  = card ? 'Editar cartão'  : 'Novo cartão';
-  document.getElementById('cardFormSubmit').textContent = card ? 'Salvar'         : 'Criar cartão';
-  document.getElementById('cardName').value    = card ? card.name    : '';
-  document.getElementById('cardLimit').value   = card ? card.limit   : '';
-  document.getElementById('cardClosing').value = card ? card.closing : '';
-  document.getElementById('cardDue').value     = card ? card.due     : '';
+  const title  = card ? 'Editar cartão' : 'Novo cartão';
+  const submit = card ? 'Salvar'        : 'Criar cartão';
+
+  // Preenche desktop
+  const dTitle  = document.getElementById('cardFormTitle');
+  const dSubmit = document.getElementById('cardFormSubmit');
+  if (dTitle)  dTitle.textContent  = title;
+  if (dSubmit) dSubmit.textContent = submit;
+  const dName    = document.getElementById('cardName');
+  const dLimit   = document.getElementById('cardLimit');
+  const dClosing = document.getElementById('cardClosing');
+  const dDue     = document.getElementById('cardDue');
+  if (dName)    dName.value    = card ? card.name    : '';
+  if (dLimit)   dLimit.value   = card ? card.limit   : '';
+  if (dClosing) dClosing.value = card ? card.closing : '';
+  if (dDue)     dDue.value     = card ? card.due     : '';
+
+  // Preenche mobile
+  const mTitle  = document.getElementById('cardFormTitleM');
+  const mSubmit = document.getElementById('cardFormSubmitM');
+  if (mTitle)  mTitle.textContent  = title;
+  if (mSubmit) mSubmit.textContent = submit;
+  const mName    = document.getElementById('cardNameM');
+  const mLimit   = document.getElementById('cardLimitM');
+  const mClosing = document.getElementById('cardClosingM');
+  const mDue     = document.getElementById('cardDueM');
+  if (mName)    mName.value    = card ? card.name    : '';
+  if (mLimit)   mLimit.value   = card ? card.limit   : '';
+  if (mClosing) mClosing.value = card ? card.closing : '';
+  if (mDue)     mDue.value     = card ? card.due     : '';
+
   _selectedCardColor = card ? card.color : CARD_COLORS[0];
   _renderCardColorPicker('cardColorPicker');
+  _renderCardColorPicker('cardColorPickerM');
 
   if (isMobile()) openSheet('sheetCard');
   else            openModal('modalCard');
@@ -44,10 +79,10 @@ function closeCardForm() {
 }
 
 function saveCard() {
-  const name    = document.getElementById('cardName').value.trim();
-  const limit   = parseFloat(document.getElementById('cardLimit').value);
-  const closing = parseInt(document.getElementById('cardClosing').value);
-  const due     = parseInt(document.getElementById('cardDue').value);
+  const name    = (_cardField('cardName')?.value    || '').trim();
+  const limit   = parseFloat(_cardField('cardLimit')?.value);
+  const closing = parseInt(_cardField('cardClosing')?.value);
+  const due     = parseInt(_cardField('cardDue')?.value);
 
   if (!name)                           { toast('Informe o nome do cartão.'); return; }
   if (isNaN(limit) || limit <= 0)      { toast('Informe o limite.');         return; }
@@ -111,8 +146,14 @@ function _renderCardColorPicker(containerId) {
 
 function _selectCardColor(el, color) {
   _selectedCardColor = color;
-  el.closest('.color-picker').querySelectorAll('.cpick-dot')
-    .forEach(d => { d.style.outline = ''; d.style.outlineOffset = ''; });
+  // Atualiza ambos os pickers
+  ['cardColorPicker', 'cardColorPickerM'].forEach(pid => {
+    const picker = document.getElementById(pid);
+    if (picker) picker.querySelectorAll('.cpick-dot').forEach(d => {
+      d.style.outline = '';
+      d.style.outlineOffset = '';
+    });
+  });
   el.style.outline = '2px solid #fff';
   el.style.outlineOffset = '2px';
 }
