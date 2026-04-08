@@ -296,6 +296,16 @@ function saveEditExpense() {
 }
 
 // ── Deletar ──────────────────────────────────────────────────
+// Ajusta goal.saved em delta (positivo = adiciona, negativo = subtrai)
+function _adjustGoalSaved(goalId, delta) {
+  if (!goalId || !delta) return;
+  const goals = loadGoals();
+  const goal  = goals.find(g => g.id === goalId);
+  if (!goal) return;
+  goal.saved = Math.max(0, (parseFloat(goal.saved) || 0) + delta);
+  saveGoals(goals);
+}
+
 function deleteExpense(id) {
   const exp = loadExp().find(e => e.id === id);
   if (!exp) return;
@@ -304,18 +314,30 @@ function deleteExpense(id) {
     openDeleteModal(
       '🔄 Lançamento recorrente',
       'Como deseja remover?',
-      'Só este mês',     () => { saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Removido.'); },
-      'Este e os futuros', () => { _deleteRecurringFuture(exp.recurringId, exp.recurringIdx); render(); toast('Recorrência removida.'); }
+      'Só este mês',     () => { if (exp.goalId) _adjustGoalSaved(exp.goalId, -exp.valor); saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Removido.'); },
+      'Este e os futuros', () => {
+        // Subtrai todos os futuros vinculados à meta
+        if (exp.goalId) {
+          Object.values(_cache.expenses).forEach(list => {
+            (list || []).forEach(e => {
+              if (e.recurringId === exp.recurringId && e.recurringIdx >= exp.recurringIdx && e.goalId)
+                _adjustGoalSaved(e.goalId, -e.valor);
+            });
+          });
+        }
+        _deleteRecurringFuture(exp.recurringId, exp.recurringIdx); render(); toast('Recorrência removida.');
+      }
     );
   } else if (exp.installmentId) {
     openDeleteModal(
       `📦 Parcela ${exp.installmentN}/${exp.installmentTotal}`,
       'Como deseja remover?',
-      'Só esta parcela', () => { saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Parcela removida.'); },
+      'Só esta parcela', () => { if (exp.goalId) _adjustGoalSaved(exp.goalId, -exp.valor); saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Parcela removida.'); },
       'Todas as parcelas', () => { _deleteAllInstallments(exp.installmentId); render(); toast('Parcelamento removido.'); }
     );
   } else {
     if (!confirm('Remover este lançamento?')) return;
+    if (exp.goalId) _adjustGoalSaved(exp.goalId, -exp.valor);
     saveExp(loadExp().filter(e => e.id !== id));
     render();
     toast('Removido.');
@@ -441,13 +463,30 @@ function _deleteAllInstallments(iid) {
 
 function _updateExpense(id, desc, valor, cat, pay, data, cardId = null) {
   if (!desc || isNaN(valor) || valor <= 0) { toast('Preencha descrição e valor.'); return; }
+
+  // Ajusta goal.saved se o lançamento estava ou passa a estar vinculado a uma meta
+  const oldExp = loadExp().find(e => e.id === id);
+  if (oldExp) {
+    if (oldExp.goalId && oldExp.cat === 'meta') {
+      if (cat === 'meta') {
+        // Mesma meta: ajusta pela diferença de valor
+        _adjustGoalSaved(oldExp.goalId, valor - oldExp.valor);
+      } else {
+        // Deixou de ser meta: reverte o valor antigo
+        _adjustGoalSaved(oldExp.goalId, -oldExp.valor);
+      }
+    }
+    // Nota: mudar PARA meta via edição não é suportado (sem seletor de goal no edit modal)
+  }
+
   const list = loadExp()
     .map(e => {
       if (e.id !== id) return e;
       const updated = { ...e, desc, valor, cat, pay, data };
-      // Atualiza cardId: define se crédito, remove se mudou para outro pagamento
       if (pay === 'credito' && cardId) updated.cardId = cardId;
       else delete updated.cardId;
+      // Mantém goalId se categoria continua sendo meta
+      if (cat !== 'meta') delete updated.goalId;
       return updated;
     })
     .sort((a, b) => b.data.localeCompare(a.data));

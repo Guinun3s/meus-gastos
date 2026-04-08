@@ -96,12 +96,13 @@ function addSavedAmount(id) {
   //    Categoria: investimento | Descrição: "Meta: [nome]"
   const list = loadExp();
   list.push({
-    id:    Date.now(),
-    desc:  `Meta: ${g.name}`,
-    valor: val,
-    cat:   'meta',
-    pay:   'transferencia',
-    data:  today(),
+    id:     Date.now(),
+    desc:   `Meta: ${g.name}`,
+    valor:  val,
+    cat:    'meta',
+    pay:    'transferencia',
+    data:   today(),
+    goalId: id,  // necessário para decrementar ao deletar
   });
   list.sort((a, b) => b.data.localeCompare(a.data));
   saveExp(list);
