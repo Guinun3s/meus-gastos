@@ -13,10 +13,10 @@ let _syncTimer   = null;
 let _syncing     = false;
 let _unsubscribe = null;
 
-let _authMode = 'login';
+let _authMode = "login";
 
 // Cache em memória (espelhado no Firestore)
-let _cache = { expenses: {}, incomes: {}, budgets: {}, goals: [] };
+let _cache = { expenses: {}, incomes: {}, budgets: {}, goals: [], cards: [] };
 
 // IDs em edição
 let _editingId       = null;

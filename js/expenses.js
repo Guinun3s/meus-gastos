@@ -49,6 +49,29 @@ function onCatChange(selectEl) {
   }
 }
 
+// Reação à mudança de forma de pagamento — mostra seletor de cartão se crédito
+function onPayChange(selectEl) {
+  const isCredito = selectEl.value === 'credito';
+  let wrapId;
+  if      (selectEl.id === 'paySelect')     wrapId = 'cardWrap';
+  else if (selectEl.id === 'editPaySelect') wrapId = 'editCardWrap';
+  else if (selectEl.id === 'mPaySelect')    wrapId = 'mCardWrap';
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  if (isCredito && loadCards().length > 0) {
+    _fillCardSelect(wrap.querySelector('select'));
+    wrap.style.display = 'flex';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function _fillCardSelect(sel) {
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Sem vínculo —</option>' +
+    loadCards().map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
 // Reação ao tipo de lançamento (normal/recorrente/parcelado)
 function onExpTypeChange(selectEl) {
   const isDesk   = selectEl.id === 'expType';
@@ -141,8 +164,9 @@ function addExpense() {
   const rawQty = document.getElementById('expTypeQty').value;
   const qty    = parseInt(rawQty) || (type === 'parcelado' ? 2 : 12);
   const goalId = cat === 'meta' ? parseInt(document.getElementById('goalLink')?.value) : null;
+  const cardId = pay === 'credito' ? (parseInt(document.getElementById('cardSelect')?.value) || null) : null;
 
-  if (_dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId)) {
+  if (_dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId, cardId)) {
     document.getElementById('desc').value  = '';
     document.getElementById('valor').value = '';
     document.getElementById('desc').dataset.autoFilled = '0';
@@ -166,6 +190,7 @@ function saveExpenseMobile() {
   const rawQty = document.getElementById('mExpTypeQty').value;
   const qty    = parseInt(rawQty) || (type === 'parcelado' ? 2 : 12);
   const goalId = cat === 'meta' ? parseInt(document.getElementById('mGoalLink')?.value) : null;
+  const cardId = pay === 'credito' ? (parseInt(document.getElementById('mCardSelect')?.value) || null) : null;
 
   if (_editingId !== null) {
     _updateExpense(_editingId, desc, valor, cat, pay, data);
@@ -182,10 +207,10 @@ function saveExpenseMobile() {
   }
 }
 
-function _dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId) {
-  if (type === 'recorrente') return _createRecurring(desc, valor, cat, pay, data, qty, goalId);
-  if (type === 'parcelado')  return _createInstallment(desc, valor, cat, pay, data, qty);
-  return _addExpense(desc, valor, cat, pay, data, goalId);
+function _dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId, cardId) {
+  if (type === 'recorrente') return _createRecurring(desc, valor, cat, pay, data, qty, goalId, cardId);
+  if (type === 'parcelado')  return _createInstallment(desc, valor, cat, pay, data, qty, cardId);
+  return _addExpense(desc, valor, cat, pay, data, goalId, cardId);
 }
 
 // ── Abrir sheet de adição (mobile FAB) ───────────────────────
@@ -204,6 +229,8 @@ function openAddSheet() {
   if (pay)  pay.selectedIndex = 0;
   const wrap = document.getElementById('mGoalLinkWrap');
   if (wrap) wrap.style.display = 'none';
+  const cw = document.getElementById('mCardWrap');
+  if (cw) cw.style.display = 'none';
   _setSheetAddMode('add');
   openSheet('sheetAdd');
 }
@@ -287,7 +314,7 @@ function openDeleteModal(title, subtitle, labelA, cbA, labelB, cbB) {
 }
 
 // ── Helpers de criação ────────────────────────────────────────
-function _addExpense(desc, valor, cat, pay, data, goalId = null) {
+function _addExpense(desc, valor, cat, pay, data, goalId = null, cardId = null) {
   if (!desc || isNaN(valor) || valor <= 0) { toast('Preencha descrição e valor.'); return false; }
 
   if (cat === 'meta') {
@@ -302,6 +329,7 @@ function _addExpense(desc, valor, cat, pay, data, goalId = null) {
   const list  = loadExp();
   const entry = { id: Date.now(), desc, valor, cat, pay, data };
   if (goalId) entry.goalId = goalId;
+  if (cardId) entry.cardId = cardId;
   list.push(entry);
   list.sort((a, b) => b.data.localeCompare(a.data));
   saveExp(list);
@@ -310,7 +338,7 @@ function _addExpense(desc, valor, cat, pay, data, goalId = null) {
   return true;
 }
 
-function _createRecurring(desc, valor, cat, pay, data, months, goalId) {
+function _createRecurring(desc, valor, cat, pay, data, months, goalId, cardId) {
   if (!desc || isNaN(valor) || valor <= 0) { toast('Preencha descrição e valor.'); return false; }
   if (isNaN(months) || months < 1 || months > 60) { toast('Informe entre 1 e 60 meses.'); return false; }
 
@@ -327,10 +355,9 @@ function _createRecurring(desc, valor, cat, pay, data, months, goalId) {
     const entryData = `${ny}-${String(nm + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
     if (!_cache.expenses[key]) _cache.expenses[key] = [];
-    _cache.expenses[key].push({
-      id: rid + i, desc, valor, cat, pay, data: entryData,
-      recurringId: rid, recurringIdx: i, recurringTotal: months
-    });
+    const recEntry = { id: rid + i, desc, valor, cat, pay, data: entryData, recurringId: rid, recurringIdx: i, recurringTotal: months };
+    if (cardId) recEntry.cardId = cardId;
+    _cache.expenses[key].push(recEntry);
     _cache.expenses[key].sort((a, b) => b.data.localeCompare(a.data));
   }
 
@@ -340,7 +367,7 @@ function _createRecurring(desc, valor, cat, pay, data, months, goalId) {
   return true;
 }
 
-function _createInstallment(desc, valor, cat, pay, data, nParcelas) {
+function _createInstallment(desc, valor, cat, pay, data, nParcelas, cardId) {
   if (!desc || isNaN(valor) || valor <= 0) { toast('Preencha descrição e valor.'); return false; }
   if (isNaN(nParcelas) || nParcelas < 2 || nParcelas > 48) { toast('Informe entre 2 e 48 parcelas.'); return false; }
 
@@ -361,10 +388,9 @@ function _createInstallment(desc, valor, cat, pay, data, nParcelas) {
     const valorParcela = i === 0 ? base + remainder : base;
 
     if (!_cache.expenses[key]) _cache.expenses[key] = [];
-    _cache.expenses[key].push({
-      id: iid + i, desc, valor: valorParcela, cat, pay, data: entryData,
-      installmentId: iid, installmentN: i + 1, installmentTotal: nParcelas, installmentValorTotal: valor
-    });
+    const instEntry = { id: iid + i, desc, valor: valorParcela, cat, pay, data: entryData, installmentId: iid, installmentN: i + 1, installmentTotal: nParcelas, installmentValorTotal: valor };
+    if (cardId) instEntry.cardId = cardId;
+    _cache.expenses[key].push(instEntry);
     _cache.expenses[key].sort((a, b) => b.data.localeCompare(a.data));
   }
 
@@ -412,9 +438,14 @@ function _setSheetAddMode(mode) {
 
 // ── Badges de tipo ────────────────────────────────────────────
 function _typeBadge(e) {
-  if (e.recurringId)   return ` <span class="badge-rec" title="Recorrente ${e.recurringIdx+1}/${e.recurringTotal}">🔄</span>`;
-  if (e.installmentId) return ` <span class="badge-inst" title="${fmt(e.installmentValorTotal||0)} total">${e.installmentN}/${e.installmentTotal}</span>`;
-  return '';
+  let badge = '';
+  if (e.recurringId)   badge += ` <span class="badge-rec" title="Recorrente ${e.recurringIdx+1}/${e.recurringTotal}">🔄</span>`;
+  if (e.installmentId) badge += ` <span class="badge-inst" title="${fmt(e.installmentValorTotal||0)} total">${e.installmentN}/${e.installmentTotal}</span>`;
+  if (e.cardId) {
+    const card = loadCards().find(c => c.id === e.cardId);
+    if (card) badge += ` <span class="badge-card" style="background:${card.color}1a;color:${card.color}">💳 ${card.name}</span>`;
+  }
+  return badge;
 }
 
 // ── Renderizar tabela (desktop) e cards (mobile) ─────────────

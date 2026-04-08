@@ -11,6 +11,7 @@ function switchTab(name, btn) {
   if (name === 'historico')      renderHistoryPanel();
   if (name === 'metas')          renderGoals();
   if (name === 'compromissos')   renderCommitments();
+  if (name === 'cartoes')        renderCards();
 }
 
 function switchMobilePage(name, btn) {
@@ -23,7 +24,7 @@ function switchMobilePage(name, btn) {
   if (name === 'home') {
     extras.style.display = '';
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    if (fab) { fab.textContent = '+'; fab.onclick = openAddSheet; }
+    if (fab) { fab.style.display = ''; fab.textContent = '+'; fab.onclick = openAddSheet; }
   } else {
     extras.style.display = 'none';
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -32,10 +33,11 @@ function switchMobilePage(name, btn) {
     if (name === 'historico')    renderHistoryPanel();
     if (name === 'metas')        renderGoals();
     if (name === 'compromissos') renderCommitments();
+    if (name === 'cartoes')      renderCards();
     if (fab) {
+      fab.style.display = (name === 'compromissos' || name === 'cartoes') ? 'none' : '';
       fab.textContent = '+';
       fab.onclick = name === 'receitas' ? openAddIncomeSheet : openAddSheet;
-      fab.style.display = name === 'compromissos' ? 'none' : '';
     }
   }
 }

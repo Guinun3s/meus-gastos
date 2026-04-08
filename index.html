@@ -147,6 +147,7 @@
         <button class="tab"        onclick="switchTab('orcamento', this)">Orçamento</button>
         <button class="tab"        onclick="switchTab('metas', this)">Metas</button>
         <button class="tab"        onclick="switchTab('compromissos', this)">Compromissos</button>
+        <button class="tab"        onclick="switchTab('cartoes', this)">Cartões</button>
       </div>
 
 
@@ -169,7 +170,7 @@
           </div>
           <div class="fld">
             <label class="flabel">Pagamento</label>
-            <select class="fselect" id="paySelect">
+            <select class="fselect" id="paySelect" onchange="onPayChange(this)">
               <option value="dinheiro">Dinheiro</option>
               <option value="debito">Cartão Débito</option>
               <option value="credito">Cartão Crédito</option>
@@ -177,6 +178,10 @@
               <option value="boleto">Boleto</option>
               <option value="transferencia">Transferência</option>
             </select>
+          </div>
+          <div class="fld" id="cardWrap" style="display:none">
+            <label class="flabel">Cartão</label>
+            <select class="fselect" id="cardSelect"></select>
           </div>
           <div class="fld">
             <label class="flabel">Data</label>
@@ -378,6 +383,24 @@
         </div>
       </div><!-- /panel-compromissos -->
 
+      <!-- ── PAINEL: CARTÕES ── -->
+      <div class="panel" id="panel-cartoes">
+        <div class="d-only">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div class="cm-section-title" style="margin:0">💳 Meus cartões</div>
+            <button class="btn-p" style="font-size:12px;padding:6px 14px" onclick="openCardForm()">+ Novo cartão</button>
+          </div>
+          <div id="cardsListDesk"></div>
+        </div>
+        <div class="m-only" style="padding:0 1rem 1rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div class="cm-section-title" style="margin:0">💳 Meus cartões</div>
+            <button class="btn-p" style="font-size:12px;padding:5px 12px" onclick="openCardForm()">+ Novo</button>
+          </div>
+          <div id="cardsListM"></div>
+        </div>
+      </div><!-- /panel-cartoes -->
+
     </div><!-- /main -->
   </div><!-- /layout -->
 
@@ -407,6 +430,9 @@
     </button>
     <button class="nav-btn" onclick="switchMobilePage('compromissos', this)">
       <span class="nav-icon">⊟</span><span class="nav-label">Fixos</span>
+    </button>
+    <button class="nav-btn" onclick="switchMobilePage('cartoes', this)">
+      <span class="nav-icon">💳</span><span class="nav-label">Cartões</span>
     </button>
   </nav>
 
@@ -459,7 +485,7 @@
       </div>
       <div class="modal-field">
         <label class="modal-label">Pagamento</label>
-        <select class="fselect" id="editPaySelect">
+        <select class="fselect" id="editPaySelect" onchange="onPayChange(this)">
           <option value="dinheiro">Dinheiro</option>
           <option value="debito">Cartão Débito</option>
           <option value="credito">Cartão Crédito</option>
@@ -468,6 +494,10 @@
           <option value="transferencia">Transferência</option>
         </select>
       </div>
+    </div>
+    <div class="modal-field" id="editCardWrap" style="display:none">
+      <label class="modal-label">Cartão</label>
+      <select class="fselect" id="editCardSelect"></select>
     </div>
     <div class="modal-actions">
       <button class="btn-s" onclick="closeModal('modalEdit')">Cancelar</button>
@@ -581,6 +611,41 @@
 </div>
 
 
+<!-- Modal: cartão (desktop) -->
+<div class="modal-bg d-only" id="modalCard">
+  <div class="modal" style="max-width:420px">
+    <h3 id="cardFormTitle">Novo cartão</h3>
+    <div class="modal-field">
+      <label class="modal-label">Nome do cartão</label>
+      <input class="finput" type="text" id="cardName" placeholder="ex: Nubank, Inter, C6..." style="width:100%" />
+    </div>
+    <div class="modal-2col">
+      <div class="modal-field">
+        <label class="modal-label">Limite (R$)</label>
+        <input class="finput" type="number" id="cardLimit" placeholder="0,00" step="100" min="0" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Cor</label>
+        <div class="color-picker" id="cardColorPicker"></div>
+      </div>
+    </div>
+    <div class="modal-2col">
+      <div class="modal-field">
+        <label class="modal-label">Dia de fechamento</label>
+        <input class="finput" type="number" id="cardClosing" placeholder="ex: 15" min="1" max="31" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Dia de vencimento</label>
+        <input class="finput" type="number" id="cardDue" placeholder="ex: 5" min="1" max="31" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-s" onclick="closeCardForm()">Cancelar</button>
+      <button class="btn-p" id="cardFormSubmit" onclick="saveCard()">Criar cartão</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════════ SHEETS (mobile) ════════ -->
 
 <!-- Sheet: novo/editar lançamento (despesa) -->
@@ -612,7 +677,7 @@
     </div>
     <div class="form-field">
       <label class="m-flabel">Forma de pagamento</label>
-      <select class="m-fselect" id="mPaySelect">
+      <select class="m-fselect" id="mPaySelect" onchange="onPayChange(this)">
         <option value="dinheiro">Dinheiro</option>
         <option value="debito">Cartão Débito</option>
         <option value="credito">Cartão Crédito</option>
@@ -620,6 +685,11 @@
         <option value="boleto">Boleto</option>
         <option value="transferencia">Transferência</option>
       </select>
+    </div>
+    <!-- Cartão — aparece somente quando pagamento = crédito -->
+    <div class="form-field" id="mCardWrap" style="display:none">
+      <label class="m-flabel">Cartão</label>
+      <select class="m-fselect" id="mCardSelect"></select>
     </div>
     <!-- Tipo (recorrente/parcelado) — mobile -->
     <div class="form-field">
@@ -667,6 +737,37 @@
       </select>
     </div>
     <button class="btn-submit" id="sheetIncomeBtn" onclick="saveIncomeMobile()">Adicionar receita</button>
+  </div>
+</div>
+
+<!-- Sheet: cartão (mobile) -->
+<div class="sheet-bg m-only" id="sheetCard">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="cardFormTitle">Novo cartão</div>
+    <div class="form-field">
+      <label class="m-flabel">Nome do cartão</label>
+      <input class="m-finput" type="text" id="cardName" placeholder="ex: Nubank, Inter, C6..." />
+    </div>
+    <div class="form-field">
+      <label class="m-flabel">Limite (R$)</label>
+      <input class="m-finput" type="number" id="cardLimit" placeholder="0,00" step="100" min="0" inputmode="decimal" />
+    </div>
+    <div class="form-2col">
+      <div class="form-field">
+        <label class="m-flabel">Fechamento (dia)</label>
+        <input class="m-finput" type="number" id="cardClosing" placeholder="15" min="1" max="31" inputmode="numeric" />
+      </div>
+      <div class="form-field">
+        <label class="m-flabel">Vencimento (dia)</label>
+        <input class="m-finput" type="number" id="cardDue" placeholder="5" min="1" max="31" inputmode="numeric" />
+      </div>
+    </div>
+    <div class="form-field" style="margin-bottom:16px">
+      <label class="m-flabel">Cor</label>
+      <div class="color-picker" id="cardColorPicker"></div>
+    </div>
+    <button class="btn-submit" id="cardFormSubmit" onclick="saveCard()">Criar cartão</button>
   </div>
 </div>
 
@@ -782,6 +883,7 @@
 <script src="js/charts.js"></script>
 <script src="js/csv.js"></script>
 <script src="js/goals.js"></script>
+<script src="js/cards.js"></script>
 <script src="js/commitments.js"></script>
 <script src="js/app.js"></script>
 

@@ -9,9 +9,10 @@ function render() {
   renderSidebar();
   renderBudget();
   renderGoals();
-  // Atualiza compromissos só se o painel estiver visível
-  const panel = document.getElementById('panel-compromissos');
-  if (panel && panel.classList.contains('active')) renderCommitments();
+  const panelComp = document.getElementById('panel-compromissos');
+  if (panelComp && panelComp.classList.contains('active')) renderCommitments();
+  const panelCard = document.getElementById('panel-cartoes');
+  if (panelCard && panelCard.classList.contains('active')) renderCards();
 }
 
 function fillCatSelects() {
