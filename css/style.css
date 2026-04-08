@@ -855,7 +855,6 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
   font-size: 12px;
   cursor: pointer;
 }
-<<<<<<< HEAD
 
 /* ════════════════════════════════════════════════
    PAINEL DE COMPROMISSOS (recorrentes + parcelamentos)
@@ -940,5 +939,3 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
   padding: 16px 0;
   text-align: center;
 }
-=======
->>>>>>> 6abdc13f3680302ad894fa02d4511264fc520969

@@ -101,61 +101,6 @@ function _updateInstallPreview(isDesk) {
   }
 }
 
-<<<<<<< HEAD
-=======
-// Reação ao tipo de lançamento (normal/recorrente/parcelado)
-function onExpTypeChange(selectEl) {
-  const isDesk   = selectEl.id === 'expType';
-  const extraId  = isDesk ? 'expTypeExtra'  : 'mExpTypeExtra';
-  const labelId  = isDesk ? 'expTypeLabel'  : 'mExpTypeLabel';
-  const inputId  = isDesk ? 'expTypeQty'    : 'mExpTypeQty';
-  const previewId = isDesk ? 'expTypePreview' : 'mExpTypePreview';
-  const extra    = document.getElementById(extraId);
-  const label    = document.getElementById(labelId);
-  const input    = document.getElementById(inputId);
-  const preview  = document.getElementById(previewId);
-  if (!extra) return;
-
-  if (selectEl.value === 'normal') {
-    extra.style.display = 'none';
-  } else {
-    extra.style.display = 'flex';
-    if (selectEl.value === 'recorrente') {
-      label.textContent = 'Repetir por';
-      input.value = input.dataset.lastRec || '12';
-      input.placeholder = '12';
-      if (preview) preview.textContent = 'meses';
-    } else {
-      label.textContent = 'Parcelas';
-      input.value = input.dataset.lastInst || '2';
-      input.placeholder = '2';
-      _updateInstallPreview(isDesk);
-    }
-  }
-}
-
-// Atualiza o preview "R$X/parcela"
-function _updateInstallPreview(isDesk) {
-  const valorId   = isDesk ? 'valor'       : 'mValor';
-  const inputId   = isDesk ? 'expTypeQty'  : 'mExpTypeQty';
-  const previewId = isDesk ? 'expTypePreview' : 'mExpTypePreview';
-  const typeId    = isDesk ? 'expType'     : 'mExpType';
-  const type      = document.getElementById(typeId)?.value;
-  const preview   = document.getElementById(previewId);
-  if (!preview) return;
-
-  if (type === 'parcelado') {
-    const val = parseFloat(document.getElementById(valorId)?.value) || 0;
-    const n   = parseInt(document.getElementById(inputId)?.value)   || 1;
-    preview.textContent = n > 1 && val > 0
-      ? fmt(val / n) + '/parcela'
-      : 'parcelas';
-  } else {
-    preview.textContent = 'meses';
-  }
-}
-
->>>>>>> 6abdc13f3680302ad894fa02d4511264fc520969
 function _fillGoalLinkSelect(selectId) {
   const sel   = document.getElementById(selectId);
   if (!sel) return;
@@ -193,12 +138,8 @@ function addExpense() {
   const pay    = document.getElementById('paySelect').value;
   const data   = document.getElementById('dataGasto').value || today();
   const type   = document.getElementById('expType').value;
-<<<<<<< HEAD
   const rawQty = document.getElementById('expTypeQty').value;
   const qty    = parseInt(rawQty) || (type === 'parcelado' ? 2 : 12);
-=======
-  const qty    = parseInt(document.getElementById('expTypeQty').value) || (type === 'parcelado' ? 2 : 12);
->>>>>>> 6abdc13f3680302ad894fa02d4511264fc520969
   const goalId = cat === 'meta' ? parseInt(document.getElementById('goalLink')?.value) : null;
 
   if (_dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId)) {
@@ -206,10 +147,7 @@ function addExpense() {
     document.getElementById('valor').value = '';
     document.getElementById('desc').dataset.autoFilled = '0';
     document.getElementById('expType').value = 'normal';
-<<<<<<< HEAD
     document.getElementById('expTypeQty').value = '';
-=======
->>>>>>> 6abdc13f3680302ad894fa02d4511264fc520969
     document.getElementById('expTypeExtra').style.display = 'none';
     const wrap = document.getElementById('goalLinkWrap');
     if (wrap) wrap.style.display = 'none';
@@ -225,12 +163,8 @@ function saveExpenseMobile() {
   const pay    = document.getElementById('mPaySelect').value;
   const data   = document.getElementById('mDataGasto').value || today();
   const type   = document.getElementById('mExpType').value;
-<<<<<<< HEAD
   const rawQty = document.getElementById('mExpTypeQty').value;
   const qty    = parseInt(rawQty) || (type === 'parcelado' ? 2 : 12);
-=======
-  const qty    = parseInt(document.getElementById('mExpTypeQty').value) || (type === 'parcelado' ? 2 : 12);
->>>>>>> 6abdc13f3680302ad894fa02d4511264fc520969
   const goalId = cat === 'meta' ? parseInt(document.getElementById('mGoalLink')?.value) : null;
 
   if (_editingId !== null) {
@@ -262,10 +196,7 @@ function openAddSheet() {
   document.getElementById('mDataGasto').value   = today();
   document.getElementById('mDesc').dataset.autoFilled = '0';
   document.getElementById('mExpType').value     = 'normal';
-<<<<<<< HEAD
   document.getElementById('mExpTypeQty').value  = '';
-=======
->>>>>>> 6abdc13f3680302ad894fa02d4511264fc520969
   document.getElementById('mExpTypeExtra').style.display = 'none';
   const cat  = document.getElementById('mCatSelect');
   if (cat)  cat.selectedIndex = 0;
