@@ -1112,3 +1112,19 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
 .sem-label { font-size: 11px; color: var(--text3); }
 .sem-val   { font-size: 13px; font-family: var(--mono); font-weight: 500; }
 .sem-diff  { font-size: 11px; margin-top: 6px; font-family: var(--mono); }
+
+.budget-alert-pill {
+  justify-content: space-between;
+}
+.alert-dismiss-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: .6;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.alert-dismiss-btn:hover { opacity: 1; }

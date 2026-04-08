@@ -5,8 +5,15 @@
 // Threshold de alerta (80%)
 const BUDGET_ALERT_PCT = 80;
 
-// Guarda quais alertas já foram exibidos nesta sessão
-const _alertedCats = new Set();
+// _alertedCats  = toasts já disparados (evita spam na sessão)
+// _dismissedAlerts = pills que o usuário fechou (zera ao reabrir o app)
+const _alertedCats    = new Set();
+const _dismissedAlerts = new Set();
+
+function dismissAlert(key) {
+  _dismissedAlerts.add(key);
+  checkBudgetAlerts(); // re-renderiza sem o pill dispensado
+}
 
 function renderBudget() {
   const budgets = loadBud();
@@ -88,10 +95,14 @@ function checkBudgetAlerts() {
     }
   });
 
-  if (alerts.length) {
-    el.innerHTML = alerts.map(a =>
+  // Filtra os já dispensados pelo usuário
+  const visible = alerts.filter(a => !_dismissedAlerts.has(a.key));
+
+  if (visible.length) {
+    el.innerHTML = visible.map(a =>
       `<div class="budget-alert-pill" style="border-color:${a.color};color:${a.color}">
-        ${a.icon} ${a.msg}
+        <span>${a.icon} ${a.msg}</span>
+        <button class="alert-dismiss-btn" onclick="dismissAlert('${a.key}')" title="Dispensar">✕</button>
       </div>`
     ).join('');
     el.style.display = '';
