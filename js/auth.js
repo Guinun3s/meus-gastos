@@ -139,13 +139,8 @@ function updateUserUI(user) {
   if (document.getElementById('mMenuEmail'))    document.getElementById('mMenuEmail').textContent    = email;
 }
 
-function syncBothBalanceInputs() {
-  const bal = loadBal() || '';
-  ['balanceInput', 'balanceInputM'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el !== document.activeElement) el.value = bal;
-  });
-}
+// Mantida por compatibilidade — inputs de saldo foram substituídos pelo sistema de receitas
+function syncBothBalanceInputs() {}
 
 // ── Inicializa Firebase e escuta mudanças de autenticação ────
 function initFirebase() {

@@ -1,4 +1,4 @@
-const CACHE = 'gastos-v4';
+const CACHE = 'gastos-v5';
 
 const ASSETS = [
   './index.html',
@@ -24,9 +24,18 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Ignora requisições não-GET (POST do Firebase, etc.)
+  if (e.request.method !== 'GET') return;
+
   const url = new URL(e.request.url);
 
-  // HTML → sempre busca na rede primeiro (garante atualização)
+  // Ignora requisições do Firebase (Firestore, Auth, Functions)
+  if (url.hostname.includes('firestore.googleapis.com') ||
+      url.hostname.includes('firebase') ||
+      url.hostname.includes('identitytoolkit') ||
+      url.hostname.includes('securetoken')) return;
+
+  // HTML → rede primeiro, garante atualização
   if (e.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
     e.respondWith(
       fetch(e.request)
@@ -40,12 +49,14 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // JS/CSS/fontes → cache primeiro, mas atualiza em background
+  // JS/CSS/fontes → cache primeiro, atualiza em background
   e.respondWith(
     caches.match(e.request).then(cached => {
       const network = fetch(e.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
         return res;
       });
       return cached || network;
