@@ -21,12 +21,13 @@ function cardGastosMes(cardId, key) {
 }
 
 // ── Leitura dos campos (resolve IDs desktop vs mobile) ────────
+// Detecta pelo sheet aberto, não por largura de tela (mais confiável)
 function _cardField(baseId) {
-  if (isMobile()) {
-    const m = document.getElementById(baseId + 'M');
-    if (m) return m;
+  const sheetOpen = document.getElementById('sheetCard')?.classList.contains('open');
+  if (sheetOpen) {
+    return document.getElementById(baseId + 'M') || document.getElementById(baseId);
   }
-  return document.getElementById(baseId);
+  return document.getElementById(baseId) || document.getElementById(baseId + 'M');
 }
 
 // ── Formulário ────────────────────────────────────────────────
