@@ -90,6 +90,32 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
     html += `</div>`;
   }
 
+  // Bloco de cartões — só se houver cartões cadastrados
+  const cards = loadCards();
+  if (cards.length) {
+    html += `<div class="m-cat-title">💳 cartões</div><div class="m-cards-home">`;
+    html += cards.map(c => {
+      const gasto  = cardGastosMes(c.id);
+      const pct    = c.limit > 0 ? Math.min(100, Math.round(gasto / c.limit * 100)) : 0;
+      const danger = pct >= 80;
+      const barColor = danger ? 'var(--red)' : c.color;
+      const valColor = danger ? 'var(--red)' : c.color;
+      return `<div class="m-card-home-row">
+        <div class="m-card-home-top">
+          <span class="m-card-home-name" style="color:${c.color}">${c.name}</span>
+          <span class="m-card-home-val" style="color:${valColor}">${fmt(gasto)} <span class="m-card-home-limit">/ ${fmt(c.limit)}</span></span>
+        </div>
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+        <div class="m-card-home-pct" style="color:${danger ? 'var(--red)' : 'var(--text3)'}">
+          ${pct}% do limite${danger ? ' ⚠' : ''}
+        </div>
+      </div>`;
+    }).join('');
+    html += `</div>`;
+  }
+
   el.innerHTML = html;
 }
 
@@ -141,6 +167,36 @@ function renderSidebar() {
           </div>`;
         }).join('')
       : '<div style="font-size:11px;color:var(--text3)">Nenhum gasto ainda.</div>';
+  }
+
+  // Cartões na sidebar
+  const scards = document.getElementById('sidebarCards');
+  if (scards) {
+    const cards = loadCards();
+    if (cards.length) {
+      scards.innerHTML = cards.map(c => {
+        const gasto  = cardGastosMes(c.id);
+        const pct    = c.limit > 0 ? Math.min(100, Math.round(gasto / c.limit * 100)) : 0;
+        const danger = pct >= 80;
+        const barColor = danger ? 'var(--red)' : c.color;
+        return `<div style="margin-bottom:10px">
+          <div class="scat-top">
+            <span class="scat-name" style="color:${c.color}">${c.name}</span>
+            <span class="scat-val" style="color:${danger ? 'var(--red)' : 'var(--text2)'}">
+              ${fmt(gasto)} <span style="color:var(--text3);font-size:10px">/ ${fmt(c.limit)}</span>
+            </span>
+          </div>
+          <div class="sbar-bg">
+            <div class="sbar-fill" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <div style="font-size:10px;color:${danger ? 'var(--red)' : 'var(--text3)'};margin-top:3px">
+            ${pct}% do limite${danger ? ' ⚠' : ''}
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      scards.innerHTML = '';
+    }
   }
 
   const ss = document.getElementById('sidebarSit');

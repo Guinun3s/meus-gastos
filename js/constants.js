@@ -4,8 +4,8 @@
 // ============================================================
 
 const CATS = [
-  { id: 'mercado',      name: 'Mercado',               color: '#7ab648' },
-  { id: 'compra',      name: 'Compra online',                color: '#d9e43b' },
+  { id: 'mercado',      name: 'Mercado',                color: '#7ab648' },
+  { id: 'compra',       name: 'Compra online',          color: '#d9e43b' },
   { id: 'uber',         name: 'Uber / Táxi',            color: '#60a8f0' },
   { id: 'onibus',       name: 'Ônibus / Transporte',    color: '#50c8a0' },
   { id: 'lazer',        name: 'Lazer / Saídas',         color: '#a888f0' },
