@@ -7,7 +7,7 @@ function switchTab(name, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
-  if (name === 'graficos')       renderCharts();
+  if (name === 'graficos')       { renderCharts(); renderDowChart(); }
   if (name === 'historico')      renderHistoryPanel();
   if (name === 'metas')          renderGoals();
   if (name === 'compromissos')   renderCommitments();
@@ -29,7 +29,7 @@ function switchMobilePage(name, btn) {
     extras.style.display = 'none';
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + name).classList.add('active');
-    if (name === 'graficos')     renderCharts();
+    if (name === 'graficos')     { renderCharts(); renderDowChart(); }
     if (name === 'historico')    renderHistoryPanel();
     if (name === 'metas')        renderGoals();
     if (name === 'compromissos') renderCommitments();

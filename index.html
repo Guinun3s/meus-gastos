@@ -102,6 +102,7 @@
     <div class="sidebar d-only">
       <div id="sidebarBalance"></div>
       <div id="sidebarSit"></div>
+      <div id="previsaoSidebar"></div>
       <div id="sidebarCardsWrap">
         <div class="s-label" id="sidebarCardsLabel" style="margin-top:16px">💳 cartões</div>
         <div id="sidebarCards"></div>
@@ -114,6 +115,9 @@
 
     <!-- MAIN -->
     <div class="main">
+
+      <!-- Barra de alertas de orçamento -->
+      <div id="budgetAlertsBar" class="budget-alerts-bar" style="display:none"></div>
 
       <!-- Cards de resumo -->
       <div class="cards">
@@ -140,6 +144,10 @@
       </div>
 
       <!-- Extras da home (mobile) -->
+      <div class="m-only" style="padding:0 1rem">
+        <div id="previsaoHome"></div>
+        <div id="resumoSemHome"></div>
+      </div>
       <div id="mHomeExtras" class="m-only" style="padding:0 1rem;"></div>
 
       <!-- Abas (desktop) -->
@@ -325,6 +333,10 @@
           <div class="ccrd">
             <div class="ccrd-title">Gasto × Orçamento</div>
             <div class="chwrap" id="barWrap"><canvas id="barChart"></canvas></div>
+          </div>
+          <div class="ccrd">
+            <div class="ccrd-title">Gasto por dia da semana</div>
+            <div class="chwrap"><canvas id="dowChart"></canvas></div>
           </div>
         </div>
       </div><!-- /panel-graficos -->
@@ -887,6 +899,7 @@
 <script src="js/csv.js"></script>
 <script src="js/goals.js"></script>
 <script src="js/cards.js"></script>
+<script src="js/analytics.js"></script>
 <script src="js/commitments.js"></script>
 <script src="js/app.js"></script>
 

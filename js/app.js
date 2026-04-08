@@ -8,11 +8,16 @@ function render() {
   renderIncomes();
   renderSidebar();
   renderBudget();
+  checkBudgetAlerts();
   renderGoals();
+  renderPrevisao();
+  renderResumoSemanal();
   const panelComp = document.getElementById('panel-compromissos');
   if (panelComp && panelComp.classList.contains('active')) renderCommitments();
   const panelCard = document.getElementById('panel-cartoes');
   if (panelCard && panelCard.classList.contains('active')) renderCards();
+  const panelGraf = document.getElementById('panel-graficos');
+  if (panelGraf && panelGraf.classList.contains('active')) renderDowChart();
 }
 
 function fillCatSelects() {
