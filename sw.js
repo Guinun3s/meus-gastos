@@ -1,4 +1,4 @@
-const CACHE = 'gastos-v5';
+const CACHE = 'gastos-v6';
 
 const ASSETS = [
   './index.html',
@@ -11,7 +11,7 @@ self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(ASSETS.slice(0, 2)))
   );
-  self.skipWaiting();
+  // NÃO chama skipWaiting aqui — deixa o banner decidir o momento certo
 });
 
 self.addEventListener('activate', e => {
@@ -23,19 +23,21 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// Recebe sinal do app para ativar imediatamente
+self.addEventListener('message', e => {
+  if (e.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', e => {
-  // Ignora requisições não-GET (POST do Firebase, etc.)
   if (e.request.method !== 'GET') return;
 
   const url = new URL(e.request.url);
 
-  // Ignora requisições do Firebase (Firestore, Auth, Functions)
   if (url.hostname.includes('firestore.googleapis.com') ||
       url.hostname.includes('firebase') ||
       url.hostname.includes('identitytoolkit') ||
       url.hostname.includes('securetoken')) return;
 
-  // HTML → rede primeiro, garante atualização
   if (e.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
     e.respondWith(
       fetch(e.request)
@@ -49,7 +51,6 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // JS/CSS/fontes → cache primeiro, atualiza em background
   e.respondWith(
     caches.match(e.request).then(cached => {
       const network = fetch(e.request).then(res => {
@@ -60,6 +61,19 @@ self.addEventListener('fetch', e => {
         return res;
       });
       return cached || network;
+    })
+  );
+});
+
+// Abre o app ao clicar na notificação
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = e.notification.data?.url || './';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const existing = list.find(c => c.url.includes('meus-gastos'));
+      if (existing) return existing.focus();
+      return clients.openWindow(url);
     })
   );
 });

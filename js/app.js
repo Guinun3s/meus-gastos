@@ -30,6 +30,19 @@ function fillCatSelects() {
     '<option value="">Todas categorias</option>' + opts;
 }
 
+function showUpdateBanner() {
+  const b = document.getElementById('updateBanner');
+  if (b) b.style.display = 'flex';
+}
+
+function applyUpdate() {
+  navigator.serviceWorker.ready.then(reg => {
+    if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+  });
+  // Se não houver waiting, recarrega direto
+  setTimeout(() => window.location.reload(), 500);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initOverlayClose();
   buildGoalPickers();
@@ -76,7 +89,30 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+
+      // Detecta nova versão sendo instalada
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          // Novo SW instalado e aguardando — mostra banner
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner();
+          }
+        });
+      });
+
+      // Verifica se já há uma versão nova esperando (ex: aba reaberta)
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        showUpdateBanner();
+      }
+
+    }).catch(() => {});
+
+    // Quando o novo SW assume o controle, recarrega a página automaticamente
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
   }
 
   initFirebase();

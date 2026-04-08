@@ -1128,3 +1128,47 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
   line-height: 1;
 }
 .alert-dismiss-btn:hover { opacity: 1; }
+
+/* ════════════════════════════════════════════════
+   BANNER DE ATUALIZAÇÃO PWA
+════════════════════════════════════════════════ */
+
+#updateBanner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #1a1a2e;
+  border-bottom: 1px solid var(--accent);
+  font-size: 13px;
+  color: var(--text1);
+  animation: slideDown .3s ease;
+}
+
+#updateBanner button {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent);
+  color: #0e0e0f;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--mono);
+}
+
+#updateBanner button:hover {
+  filter: brightness(1.1);
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}

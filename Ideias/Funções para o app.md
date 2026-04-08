@@ -1,4 +1,4 @@
-💰 Funcionalidades financeiras
+~~💰 Funcionalidades financeiras~~
 
 
 
@@ -14,15 +14,15 @@
 
 
 
-📊 Análises e visualizações
+~~📊 Análises e visualizações~~
 
 
 
-Previsão de gastos — com base na média dos últimos 3 meses, estimar quanto você vai gastar no mês atual
+~~Previsão de gastos — com base na média dos últimos 3 meses, estimar quanto você vai gastar no mês atual~~
 
-Gasto por dia da semana — identificar padrões (ex: fins de semana mais caros)
+~~Gasto por dia da semana — identificar padrões (ex: fins de semana mais caros)~~
 
-Alertas de orçamento — notificação quando uma categoria ultrapassar X% do limite definido
+~~Alertas de orçamento — notificação quando uma categoria ultrapassar X% do limite definido~~
 
 
 
