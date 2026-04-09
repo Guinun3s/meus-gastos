@@ -1,19 +1,19 @@
-const CACHE = 'gastos-v7';
+const CACHE = 'gastos-v8';
 
-const ASSETS = [
+const SHELL = [
   './index.html',
   './manifest.json',
-  'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
 ];
 
+// Instala e pré-cria o cache com apenas o shell
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS.slice(0, 2)))
+    caches.open(CACHE).then(c => c.addAll(SHELL))
   );
-  // NÃO chama skipWaiting aqui — deixa o banner decidir o momento certo
+  // Não chama skipWaiting — o banner decide
 });
 
+// Remove caches antigos ao ativar
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -33,36 +33,51 @@ self.addEventListener('fetch', e => {
 
   const url = new URL(e.request.url);
 
+  // Firebase — nunca intercepta
   if (url.hostname.includes('firestore.googleapis.com') ||
       url.hostname.includes('firebase') ||
       url.hostname.includes('identitytoolkit') ||
-      url.hostname.includes('securetoken')) return;
+      url.hostname.includes('securetoken') ||
+      url.hostname.includes('gstatic.com')) return;
 
-  if (e.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+  const isLocal = url.hostname === self.location.hostname;
+  const isFont  = url.hostname.includes('fonts.googleapis') ||
+                  url.hostname.includes('fonts.gstatic') ||
+                  url.hostname.includes('cdnjs.cloudflare');
+
+  if (isLocal) {
+    // Arquivos do próprio site → NETWORK-FIRST
+    // Sempre busca a versão mais nova; usa cache só se offline
     e.respondWith(
       fetch(e.request)
         .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
           return res;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(e.request))
     );
     return;
   }
 
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      const network = fetch(e.request).then(res => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
-      });
-      return cached || network;
-    })
-  );
+  if (isFont) {
+    // Fontes e libs externas → CACHE-FIRST (raramente mudam)
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        return fetch(e.request).then(res => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
+          return res;
+        });
+      })
+    );
+    return;
+  }
 });
 
 // Abre o app ao clicar na notificação
