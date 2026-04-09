@@ -92,7 +92,7 @@ body {
   width: 100%; background: var(--bg3); border: 1px solid var(--line2);
   border-radius: 8px; padding: 11px 12px; font-family: var(--mono);
   font-size: 13px; color: var(--text); outline: none; transition: border-color .15s;
-  -webkit-appearance: none;
+  -webkit-appearance: none; appearance: none;
 }
 .auth-input:focus { border-color: var(--accent); }
 .auth-input::placeholder { color: var(--text3); }
