@@ -127,7 +127,14 @@
       <!-- Barra de alertas de orçamento -->
       <div id="budgetAlertsBar" class="budget-alerts-bar" style="display:none"></div>
 
-      <!-- Cards de resumo -->
+      <!-- Hero Saldo (mobile only) -->
+      <div class="m-only m-hero-saldo">
+        <div class="m-hero-label">SALDO DISPONÍVEL</div>
+        <div class="card-val green m-hero-val" id="saldoRealM">R$ 0,00</div>
+        <div class="card-sub m-hero-sub" id="saldoPctM"></div>
+      </div>
+
+      <!-- Cards de resumo (desktop = 4, mobile = 2) -->
       <div class="cards">
         <div class="card">
           <div class="card-label">Receitas</div>
@@ -139,12 +146,12 @@
           <div class="card-val red" id="totalGasto">R$ 0,00</div>
           <div class="card-sub" id="nLanc">0 lançamentos</div>
         </div>
-        <div class="card">
+        <div class="card d-only">
           <div class="card-label">Investido</div>
           <div class="card-val amber" id="totalInvest">R$ 0,00</div>
           <div class="card-sub">investimentos</div>
         </div>
-        <div class="card">
+        <div class="card d-only">
           <div class="card-label">Saldo real</div>
           <div class="card-val green" id="saldoReal">R$ 0,00</div>
           <div class="card-sub" id="saldoPct"></div>
@@ -152,10 +159,6 @@
       </div>
 
       <!-- Extras da home (mobile) -->
-      <div class="m-only" style="padding:0 1rem">
-        <div id="previsaoHome"></div>
-        <div id="resumoSemHome"></div>
-      </div>
       <div id="mHomeExtras" class="m-only" style="padding:0 1rem;"></div>
 
       <!-- Abas (desktop) -->
@@ -292,8 +295,8 @@
           <div class="fld">
             <label class="flabel">Tipo</label>
             <select class="fselect" id="incTipo">
-              <option value="banco">💳 Banco</option>
-              <option value="dinheiro">💵 Dinheiro</option>
+              <option value="banco">Banco</option>
+              <option value="dinheiro">Dinheiro</option>
             </select>
           </div>
           <div class="fld">
@@ -438,30 +441,18 @@
     <button class="nav-btn" onclick="switchMobilePage('lancamentos', this)">
       <span class="nav-icon nav-svg" data-nav="lancamentos">≡</span><span class="nav-label">Gastos</span>
     </button>
-    <button class="nav-btn" onclick="switchMobilePage('receitas', this)">
-      <span class="nav-icon nav-svg" data-nav="receitas">↑</span><span class="nav-label">Receitas</span>
+    <!-- FAB central integrado na nav -->
+    <button class="nav-btn nav-fab" onclick="openAddSheet()">
+      <span class="nav-fab-btn">+</span>
+      <span class="nav-label">Novo</span>
     </button>
     <button class="nav-btn" onclick="switchMobilePage('graficos', this)">
       <span class="nav-icon nav-svg" data-nav="graficos">◎</span><span class="nav-label">Gráficos</span>
     </button>
-    <button class="nav-btn" onclick="switchMobilePage('historico', this)">
-      <span class="nav-icon nav-svg" data-nav="historico">⏱</span><span class="nav-label">Histórico</span>
-    </button>
-    <button class="nav-btn" onclick="switchMobilePage('orcamento', this)">
-      <span class="nav-icon nav-svg" data-nav="orcamento">◈</span><span class="nav-label">Orçamento</span>
-    </button>
-    <button class="nav-btn" onclick="switchMobilePage('metas', this)">
-      <span class="nav-icon nav-svg" data-nav="metas">★</span><span class="nav-label">Metas</span>
-    </button>
-    <button class="nav-btn" onclick="switchMobilePage('compromissos', this)">
-      <span class="nav-icon nav-svg" data-nav="compromissos">⊟</span><span class="nav-label">Fixos</span>
-    </button>
-    <button class="nav-btn" onclick="switchMobilePage('cartoes', this)">
-      <span class="nav-icon nav-svg" data-nav="cartoes">💳</span><span class="nav-label">Cartões</span>
+    <button class="nav-btn" onclick="openSheet('sheetMenu')">
+      <span class="nav-icon nav-svg" data-nav="menu">☰</span><span class="nav-label">Menu</span>
     </button>
   </nav>
-
-  <button class="fab m-only" onclick="openAddSheet()">+</button>
 
 </div><!-- /appScreen -->
 
@@ -552,8 +543,8 @@
     <div class="modal-field">
       <label class="modal-label">Tipo</label>
       <select class="fselect" id="editIncTipo">
-        <option value="banco">💳 Banco</option>
-        <option value="dinheiro">💵 Dinheiro</option>
+        <option value="banco">Banco</option>
+        <option value="dinheiro">Dinheiro</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -746,6 +737,11 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheetAddTitle">Novo lançamento</div>
+    <!-- Toggle Gasto / Receita -->
+    <div class="add-type-toggle" id="addTypeToggle">
+      <button class="add-type-btn active" id="addTypeBtnGasto" onclick="setAddSheetMode('gasto')">Gasto</button>
+      <button class="add-type-btn" id="addTypeBtnReceita" onclick="setAddSheetMode('receita')">Receita</button>
+    </div>
     <div class="form-field">
       <label class="m-flabel">Descrição</label>
       <input class="m-finput" type="text" id="mDesc" placeholder="ex: Mercado Extra" />
@@ -799,6 +795,14 @@
         inputmode="numeric" oninput="_updateInstallPreview(false)" />
       <span class="m-exp-type-preview" id="mExpTypePreview">meses</span>
     </div>
+    <!-- Campo tipo receita (visível só no modo receita) -->
+    <div class="form-field" style="display:none">
+      <label class="m-flabel">Tipo de receita</label>
+      <select class="m-fselect" id="mIncTipoUnified">
+        <option value="banco">Banco</option>
+        <option value="dinheiro">Dinheiro</option>
+      </select>
+    </div>
     <button class="btn-submit" id="sheetAddBtn" onclick="saveExpenseMobile()">Adicionar lançamento</button>
   </div>
 </div>
@@ -825,8 +829,8 @@
     <div class="form-field">
       <label class="m-flabel">Tipo</label>
       <select class="m-fselect" id="mIncTipo">
-        <option value="banco">💳 Banco</option>
-        <option value="dinheiro">💵 Dinheiro</option>
+        <option value="banco">Banco</option>
+        <option value="dinheiro">Dinheiro</option>
       </select>
     </div>
     <button class="btn-submit" id="sheetIncomeBtn" onclick="saveIncomeMobile()">Adicionar receita</button>
@@ -905,14 +909,35 @@
         <div class="m-user-email" id="mMenuEmail"></div>
       </div>
     </div>
+    <!-- Telas secundárias -->
+    <div class="menu-section-label">Telas</div>
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('receitas', document.querySelector('.nav-btn'))">
+      <span class="menu-icon nav-svg" data-nav="receitas">↑</span> Receitas
+    </button>
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('historico', document.querySelector('.nav-btn'))">
+      <span class="menu-icon nav-svg" data-nav="historico">⏱</span> Histórico
+    </button>
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('orcamento', document.querySelector('.nav-btn'))">
+      <span class="menu-icon nav-svg" data-nav="orcamento">◈</span> Orçamento
+    </button>
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('metas', document.querySelector('.nav-btn'))">
+      <span class="menu-icon nav-svg" data-nav="metas">★</span> Metas
+    </button>
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('compromissos', document.querySelector('.nav-btn'))">
+      <span class="menu-icon nav-svg" data-nav="compromissos">⊟</span> Fixos
+    </button>
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('cartoes', document.querySelector('.nav-btn'))">
+      <span class="menu-icon nav-svg" data-nav="cartoes">💳</span> Cartões
+    </button>
+    <div class="menu-section-label" style="margin-top:8px">Ações</div>
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); openGoalForm()">
+      <span class="menu-icon">★</span> Nova meta
+    </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openExportM()">
       <span class="menu-icon">↓</span> Exportar CSV
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openSheet('sheetImport')">
       <span class="menu-icon">↑</span> Importar CSV
-    </button>
-    <button class="menu-item" onclick="closeSheet('sheetMenu'); openGoalForm()">
-      <span class="menu-icon">★</span> Nova meta
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openNotifSettings()">
       <span class="menu-icon"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><path d="M8 2a4 4 0 0 0-4 4v3l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 13a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5"/></svg></span> Notificações

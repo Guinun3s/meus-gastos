@@ -233,6 +233,61 @@ function _dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId, cardId) {
 }
 
 // ── Abrir sheet de adição (mobile FAB) ───────────────────────
+
+// ── Toggle Gasto / Receita no sheetAdd ──────────────────────
+let _addSheetMode = 'gasto'; // 'gasto' | 'receita'
+
+function setAddSheetMode(mode) {
+  _addSheetMode = mode;
+
+  // Atualiza botões do toggle
+  document.getElementById('addTypeBtnGasto')?.classList.toggle('active', mode === 'gasto');
+  document.getElementById('addTypeBtnReceita')?.classList.toggle('active', mode === 'receita');
+
+  // Mostra/esconde campos exclusivos de gasto
+  const gastoFields = ['mCatSelect', 'mPaySelect', 'mCardWrap', 'mGoalLinkWrap',
+                       'mExpType', 'mExpTypeExtra'];
+  const wrapperIds  = ['mCatSelect', 'mPaySelect', 'mExpType'];
+  document.querySelectorAll('#sheetAdd .form-field').forEach(f => {
+    const inp = f.querySelector('select, input');
+    if (!inp) return;
+    const id = inp.id;
+    if (id === 'mCatSelect' || id === 'mPaySelect' || id === 'mExpType') {
+      f.style.display = mode === 'gasto' ? '' : 'none';
+    }
+    if (id === 'mIncTipoUnified') {
+      f.style.display = mode === 'receita' ? '' : 'none';
+    }
+  });
+  document.getElementById('mCardWrap').style.display = 'none';
+  document.getElementById('mGoalLinkWrap').style.display = 'none';
+  document.getElementById('mExpTypeExtra').style.display = 'none';
+
+  // Atualiza título e botão
+  const titleEl = document.getElementById('sheetAddTitle');
+  const btnEl   = document.getElementById('sheetAddBtn');
+  if (titleEl) titleEl.textContent = mode === 'gasto' ? 'Novo lançamento' : 'Nova receita';
+  if (btnEl)   { btnEl.textContent = mode === 'gasto' ? 'Adicionar lançamento' : 'Adicionar receita';
+                 btnEl.onclick = mode === 'gasto' ? saveExpenseMobile : saveUnifiedIncomeMobile; }
+}
+
+function saveUnifiedIncomeMobile() {
+  const desc  = document.getElementById('mDesc').value.trim();
+  const valor = parseFloat(document.getElementById('mValor').value);
+  const data  = document.getElementById('mDataGasto').value || today();
+  const tipo  = document.getElementById('mIncTipoUnified')?.value || 'banco';
+
+  if (!desc || !valor || valor <= 0) { toast('Preencha descrição e valor.'); return; }
+
+  const rec = { id: Date.now(), desc, valor, data, tipo };
+  const list = loadInc();
+  list.unshift(rec);
+  saveInc(list);
+  closeSheet('sheetAdd');
+  render();
+  toast('Receita adicionada!');
+}
+
 function openAddSheet() {
   _editingId = null;
   document.getElementById('mDesc').value        = '';
@@ -251,6 +306,7 @@ function openAddSheet() {
   const cw = document.getElementById('mCardWrap');
   if (cw) cw.style.display = 'none';
   _setSheetAddMode('add');
+  setAddSheetMode('gasto'); // sempre abre como gasto
   openSheet('sheetAdd');
 }
 
