@@ -23,6 +23,15 @@ function renderSummary() {
   sr.textContent = (saldoReal < 0 ? '−' : '') + fmt(Math.abs(saldoReal));
   sr.className   = 'card-val ' + (saldoReal >= 0 ? 'green' : 'red');
 
+  // Hero saldo (mobile)
+  const srM = document.getElementById('saldoRealM');
+  const spm = document.getElementById('saldoPctM');
+  if (srM) {
+    srM.textContent = (saldoReal < 0 ? '−' : '') + fmt(Math.abs(saldoReal));
+    srM.className = 'card-val m-hero-val ' + (saldoReal >= 0 ? 'green' : 'red');
+  }
+  if (spm) spm.textContent = receita > 0 ? Math.round(totalAll / receita * 100) + '% utilizado' : 'sem receita lançada';
+
   const pct = receita > 0 ? Math.round(totalAll / receita * 100) + '% da receita' : 'sem receita lançada';
   document.getElementById('saldoPct').textContent = pct;
 
@@ -34,92 +43,72 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
   const el = document.getElementById('mHomeExtras');
   if (!el) return;
 
-  const active = CATS.filter(c => ct[c.id] > 0).sort((a, b) => ct[b.id] - ct[a.id]);
-  const grand  = Object.values(ct).reduce((s, v) => s + v, 0);
   let html = '';
 
-  // Painel banco / dinheiro
-  html += `<div class="m-saldo-split">
-    <div class="m-saldo-item">
-      ${uiIcon("card")}
-      <div>
-        <div class="m-saldo-label">Banco</div>
-        <div class="m-saldo-val ${saldoBanco >= 0 ? 'green' : 'red'}">${(saldoBanco < 0 ? '−' : '') + fmt(Math.abs(saldoBanco))}</div>
-      </div>
-    </div>
-    <div class="m-saldo-item">
-      <span class="m-saldo-icon">💵</span>
-      <div>
-        <div class="m-saldo-label">Dinheiro</div>
-        <div class="m-saldo-val ${saldoDin >= 0 ? 'green' : 'red'}">${(saldoDin < 0 ? '−' : '') + fmt(Math.abs(saldoDin))}</div>
-      </div>
-    </div>
-  </div>`;
-
+  // Barra de progresso do mês
   if (receita > 0) {
     const usedPct = Math.min(100, Math.round(total / receita * 100));
     const saldo   = receita - total;
-    html += `<div class="sit-wrap">
-      <div class="sit-row">
-        <span>Gasto: <b>${fmt(total)}</b></span>
-        <span>de <b>${fmt(receita)}</b></span>
+    const barColor = total > receita ? 'var(--red)' : 'var(--accent)';
+    html += `<div class="m-progress-card">
+      <div class="m-progress-row">
+        <span class="m-progress-label">Utilizado do mês</span>
+        <span class="m-progress-pct" style="color:${barColor}">${usedPct}%</span>
       </div>
-      <div class="sbar-bg">
-        <div class="sbar-fill" style="width:${usedPct}%;background:${total > receita ? 'var(--red)' : 'var(--accent)'}"></div>
+      <div class="m-progress-bar-bg">
+        <div class="m-progress-bar-fill" style="width:${usedPct}%;background:${barColor}"></div>
       </div>
-      <div class="sit-msg" style="color:${saldo >= 0 ? 'var(--accent)' : 'var(--red)'}">
+      <div class="m-progress-msg" style="color:${saldo >= 0 ? 'var(--accent)' : 'var(--red)'}">
         ${saldo >= 0 ? '✓ Sobra ' + fmt(saldo) : '⚠ Excedeu ' + fmt(Math.abs(saldo))}
       </div>
     </div>`;
   }
 
+  // Top 3 categorias
+  const active = CATS.filter(c => ct[c.id] > 0).sort((a, b) => ct[b.id] - ct[a.id]);
   if (active.length) {
-    html += `<div class="m-cat-title">por categoria</div><div class="m-cat-list">`;
-    html += active.map(c => {
-      const p = grand > 0 ? Math.round(ct[c.id] / grand * 100) : 0;
+    const top3 = active.slice(0, 3);
+    const hasMore = active.length > 3;
+    html += `<div class="m-section-hdr">
+      <span class="m-section-title">Top categorias</span>
+      ${hasMore ? `<button class="m-section-link" onclick="switchMobilePage('lancamentos', document.querySelector('.nav-btn:nth-child(2))'))">ver todas →</button>` : ''}
+    </div>`;
+    html += `<div class="m-top-cats">`;
+    html += top3.map(c => {
       const iconHtml = isNeonTheme()
         ? `<span class="neon-cat-mini">${catIconSVG(c.id)}</span>`
-        : `<span class="m-cat-dot" style="background:${c.color}"></span>`;
-      return `<div class="m-cat-row">
-        <div class="m-cat-top">
-          <span style="display:flex;align-items:center;gap:6px">${iconHtml}<span class="m-cat-name">${c.name}</span></span>
-          <span class="m-cat-amt">${fmt(ct[c.id])}</span>
-        </div>
-        <div class="bar-bg">
-          <div class="bar-fill" style="width:${p}%;background:${c.color}"></div>
-        </div>
+        : `<span class="m-top-cat-dot" style="background:${c.color}"></span>`;
+      return `<div class="m-top-cat-row">
+        ${iconHtml}
+        <span class="m-top-cat-name">${c.name}</span>
+        <span class="m-top-cat-val">${fmt(ct[c.id])}</span>
       </div>`;
     }).join('');
     html += `</div>`;
   }
 
-  // Bloco de cartões — calcula gastos internamente sem depender de cards.js
+  // Cartões (compacto — só se tiver gasto)
   const cards = _cache.cards || [];
-  if (cards.length) {
-    const allExps = _cache.expenses[mKey()] || [];
-    html += `<div class="m-cat-title">${uiIcon('card')} cartões</div>`;
-    cards.forEach(c => {
-      const gasto  = allExps.filter(e => e.pay === 'credito' && e.cardId === c.id)
-                            .reduce((s, e) => s + e.valor, 0);
+  const allExps = _cache.expenses[mKey()] || [];
+  const cardsComGasto = cards.filter(c =>
+    allExps.some(e => e.pay === 'credito' && e.cardId === c.id)
+  );
+  if (cardsComGasto.length) {
+    html += `<div class="m-section-hdr"><span class="m-section-title">Cartões</span></div>`;
+    html += `<div class="m-top-cats">`;
+    cardsComGasto.forEach(c => {
+      const gasto  = allExps.filter(e => e.pay === 'credito' && e.cardId === c.id).reduce((s, e) => s + e.valor, 0);
       const pct    = c.limit > 0 ? Math.min(100, Math.round(gasto / c.limit * 100)) : 0;
       const danger = pct >= 80;
-      const barColor = danger ? 'var(--red)' : c.color;
-      const valColor = danger ? 'var(--red)' : c.color;
-      html += `<div style="margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-          <span style="font-size:12px;font-weight:500;color:${c.color}">${c.name}</span>
-          <span style="font-size:12px;font-family:var(--mono);color:${valColor}">${fmt(gasto)}
-            <span style="font-size:10px;color:var(--text3)">/ ${fmt(c.limit)}</span>
-          </span>
-        </div>
-        <div class="bar-bg">
-          <div class="bar-fill" style="width:${pct}%;background:${barColor}"></div>
-        </div>
-        <div style="font-size:10px;color:${danger ? 'var(--red)' : 'var(--text3)'};margin-top:3px">
-          ${pct}% do limite${danger ? ' ⚠' : ''}
-        </div>
+      html += `<div class="m-top-cat-row">
+        <span class="m-top-cat-dot" style="background:${danger ? 'var(--red)' : c.color}"></span>
+        <span class="m-top-cat-name">${c.name}</span>
+        <span class="m-top-cat-val" style="color:${danger ? 'var(--red)' : 'var(--text2)'}">
+          ${fmt(gasto)} <span style="font-size:10px;color:var(--text3)">/ ${fmt(c.limit)}</span>
+        </span>
       </div>`;
     });
+    html += `</div>`;
   }
 
   el.innerHTML = html;

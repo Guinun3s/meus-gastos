@@ -34,11 +34,7 @@ function switchMobilePage(name, btn) {
     if (name === 'metas')        renderGoals();
     if (name === 'compromissos') renderCommitments();
     if (name === 'cartoes')      renderCards();
-    if (fab) {
-      fab.style.display = (name === 'compromissos' || name === 'cartoes') ? 'none' : '';
-      fab.textContent = '+';
-      fab.onclick = name === 'receitas' ? openAddIncomeSheet : openAddSheet;
-    }
+    // FAB removido — o botão + agora está integrado na nav
   }
 }
 
@@ -52,7 +48,7 @@ function _refreshNavIcons() {
       // Restore text icons
       const fallbacks = {
         home:'⌂', lancamentos:'≡', receitas:'↑', graficos:'◎',
-        historico:'⏱', orcamento:'◈', metas:'★', compromissos:'⊟', cartoes:'💳'
+        historico:'⏱', orcamento:'◈', metas:'★', compromissos:'⊟', cartoes:'💳', menu:'☰'
       };
       el.textContent = fallbacks[key] || '';
     }
