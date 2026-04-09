@@ -1820,3 +1820,186 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
 
 /* ── Budget input hint ──────────────────────────── */
 .binput::placeholder { color: var(--text3); font-style: italic; font-size: 11px; }
+
+/* ════════════════════════════════════════════════
+   MOBILE REDESIGN — home limpa e nav 5 itens
+════════════════════════════════════════════════ */
+
+/* ── Cards: 2 colunas no mobile ─────────────────── */
+@media (max-width: 767px) {
+  .cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .card {
+    padding: 14px 14px 12px;
+    border-radius: 14px;
+  }
+  .card-val { font-size: 1.25rem; }
+}
+
+/* ── Hero Saldo (mobile only) ───────────────────── */
+.m-hero-saldo {
+  text-align: center;
+  padding: 20px 1rem 16px;
+}
+.m-hero-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.m-hero-val {
+  font-size: 2.4rem !important;
+  font-weight: 800 !important;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.m-hero-sub {
+  font-size: 12px;
+  color: var(--text3);
+}
+
+/* ── Nav 5 itens + FAB central ──────────────────── */
+@media (max-width: 767px) {
+  .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+    overflow: visible;
+  }
+  .nav-btn { min-width: unset; flex: 1; }
+}
+
+/* FAB integrado na nav */
+.nav-fab { position: relative; }
+.nav-fab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #ff40a0);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 auto 2px;
+  margin-top: -20px;
+  box-shadow: 0 4px 16px rgba(128,96,255,0.4), 0 2px 8px rgba(0,0,0,0.3);
+  border: 3px solid var(--bg);
+  transition: transform .15s, box-shadow .15s;
+}
+.nav-fab:active .nav-fab-btn {
+  transform: scale(.93);
+  box-shadow: 0 2px 8px rgba(128,96,255,0.3);
+}
+
+/* Classic theme fab button color */
+:root .nav-fab-btn { background: linear-gradient(135deg, #c8f060, #7ab648); color: #0e0e0f; }
+[data-theme="neon"] .nav-fab-btn { background: linear-gradient(135deg, #8060ff, #ff40a0); color: #fff; }
+
+/* ── Home mobile — seções limpas ────────────────── */
+.m-progress-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.m-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.m-progress-label { font-size: 12px; color: var(--text2); }
+.m-progress-pct   { font-size: 13px; font-weight: 700; font-family: var(--mono); }
+.m-progress-bar-bg {
+  height: 6px;
+  background: var(--border);
+  border-radius: 99px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.m-progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.m-progress-msg { font-size: 11px; font-weight: 600; }
+
+/* Cabeçalhos de seção */
+.m-section-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 14px 0 8px;
+}
+.m-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.m-section-link {
+  font-size: 11px;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--mono);
+}
+
+/* Top 3 categorias */
+.m-top-cats { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.m-top-cat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.m-top-cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.m-top-cat-name { font-size: 13px; color: var(--text1); flex: 1; font-weight: 600; }
+.m-top-cat-val  { font-size: 13px; font-family: var(--mono); font-weight: 700; color: var(--text2); }
+
+/* Menu section labels */
+.menu-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  padding: 12px 0 6px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.menu-section-label:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+
+/* Neon overrides */
+[data-theme="neon"] .m-progress-card {
+  background: #0d0d22;
+  border-color: rgba(128,96,255,0.14);
+}
+[data-theme="neon"] .m-top-cat-row {
+  background: #0d0d22;
+  border-color: rgba(128,96,255,0.12);
+}
+[data-theme="neon"] .m-top-cat-name { font-family: 'Nunito', sans-serif; font-weight: 700; }
+[data-theme="neon"] .m-progress-label,
+[data-theme="neon"] .m-top-cat-val  { font-family: 'Nunito', sans-serif; }
+[data-theme="neon"] .m-hero-val { font-family: 'Nunito', sans-serif !important; }
