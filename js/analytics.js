@@ -115,8 +115,12 @@ function renderPrevisao() {
   const elD = document.getElementById('previsaoSidebar');
 
   if (!p) {
-    if (elM) elM.innerHTML = '';
-    if (elD) elD.innerHTML = '';
+    const emptyHtml = `<div class="prev-empty">
+      <div class="prev-empty-icon">${uiIcon('chartUp','var(--text3)')}</div>
+      <div class="prev-empty-txt">Previsão disponível após 3 meses de uso</div>
+    </div>`;
+    if (elM) elM.innerHTML = emptyHtml;
+    if (elD) elD.innerHTML = emptyHtml;
     return;
   }
 

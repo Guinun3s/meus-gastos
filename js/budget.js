@@ -42,7 +42,9 @@ function renderBudget() {
         : `<div class="bdot" style="background:${c.color}"></div>`}
       <div class="bname">${c.name} ${alertBadge}</div>
       <div class="bspent">gasto: ${fmt(s)}</div>
-      <input class="binput" type="number" min="0" step="10" placeholder="Sem limite"
+      <input class="binput" type="number" min="0" step="10"
+        placeholder="Definir limite..."
+        title="Digite um valor para definir o limite desta categoria"
         value="${budgets[c.id] || ''}" inputmode="decimal"
         onchange="updateBudget('${c.id}', this.value)" />
       <div class="bstatus" style="color:${over ? 'var(--red)' : 'var(--accent)'}"> ${st}</div>

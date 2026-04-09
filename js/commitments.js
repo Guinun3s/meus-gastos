@@ -78,19 +78,20 @@ function _buildRecurringHTML(groups) {
   if (!groups.length) return '<div class="cm-empty">Nenhuma recorrência ativa.</div>';
 
   return groups.map(g => {
-    const cat     = catById(g.cat);
-    const next    = _nextEntry(g.entries);
-    const paid    = _paidCount(g.entries);
-    const remain  = g.entries.length - paid;
+    const cat      = catById(g.cat);
+    const todayStr = today();
+    const futureEntries = g.entries.filter(e => e.data >= todayStr);
+    const next     = futureEntries.length ? futureEntries[0] : null;
+    const paid     = _paidCount(g.entries);
+    const remain   = futureEntries.length;
     const isActive = remain > 0;
-    const pct     = g.total > 0 ? Math.round(paid / g.total * 100) : 0;
+    const pct      = g.total > 0 ? Math.round(paid / g.total * 100) : 0;
     const nextDate = next ? fmtDate(next.data) : '—';
     const statusTxt = isActive
       ? `${paid} de ${g.total} meses • próx. ${nextDate}`
-      : `Encerrada — ${g.total} meses`;
+      : `Encerrada — ${g.total} meses concluídos`;
     // Índice do primeiro entry futuro (para "cancelar a partir de agora")
-    const todayStr = today();
-    const firstFuture = g.entries.find(e => e.data >= todayStr);
+    const firstFuture = futureEntries[0] || null;
     const cancelIdx = firstFuture ? firstFuture.recurringIdx : null;
 
     return `<div class="cm-card ${isActive ? '' : 'cm-done'}">

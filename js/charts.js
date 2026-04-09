@@ -244,22 +244,22 @@ function _renderHistoryTable(data, tableId = 'historyTable') {
           <th class="r">Gastos</th>
           <th class="r">Investido</th>
           <th class="r">Total saído</th>
-          <th class="r">Saldo inf.</th>
+          <th class="r">Receita</th>
           <th class="r">Saldo real</th>
         </tr>
       </thead>
       <tbody>
         ${data.map(d => {
-          const saldoReal = d.bal - d.total;
+          const saldoReal = d.receita - d.total;
           const current   = isCurrentMonth(d);
           return `<tr class="${current ? 'hist-current' : ''}">
             <td>${d.label}${current ? ' <span class="hist-badge">atual</span>' : ''}</td>
             <td class="r td-r">${fmt(d.gastos)}</td>
             <td class="r" style="color:var(--amber)">${d.invest > 0 ? fmt(d.invest) : '—'}</td>
             <td class="r td-r">${fmt(d.total)}</td>
-            <td class="r">${d.bal > 0 ? fmt(d.bal) : '—'}</td>
+            <td class="r" style="color:var(--accent)">${d.receita > 0 ? fmt(d.receita) : '—'}</td>
             <td class="r" style="color:${saldoReal >= 0 ? 'var(--accent)' : 'var(--red)'}">
-              ${d.bal > 0 ? (saldoReal < 0 ? '−' : '') + fmt(Math.abs(saldoReal)) : '—'}
+              ${d.receita > 0 ? (saldoReal < 0 ? '−' : '') + fmt(Math.abs(saldoReal)) : '—'}
             </td>
           </tr>`;
         }).join('')}
