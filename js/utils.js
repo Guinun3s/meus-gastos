@@ -81,9 +81,9 @@ function setSyncStatus(s) {
 function catPill(catId) {
   const cat = catById(catId);
   if (isNeonTheme()) {
-    return `<span class="pill neon-pill">
-      <span class="neon-icon">${catIconSVG(catId)}</span>
-      <span>${cat.name}</span>
+    // Sem ícone — texto colorido + borda colorida + glow
+    return `<span class="neon-cat-pill" style="color:${cat.color};border-color:${cat.color}40;box-shadow:0 0 8px ${cat.color}30">
+      ${cat.name}
     </span>`;
   }
   return `<span class="pill" style="background:${cat.color}1a;color:${cat.color}">
@@ -96,9 +96,9 @@ function payPill(payId) {
   const pc = PAY_COLORS[payId] || '#585860';
   const pl = PAY_LABELS[payId] || payId || '—';
   if (isNeonTheme()) {
-    return `<span class="pill neon-pill">
-      <span class="neon-icon">${payIconSVG(payId)}</span>
-      <span>${pl}</span>
+    // Com ícone — texto colorido + borda colorida + glow
+    return `<span class="neon-pay-pill" style="color:${pc};border-color:${pc}40;box-shadow:0 0 8px ${pc}25">
+      <span class="neon-icon">${payIconSVG(payId)}</span>${pl}
     </span>`;
   }
   return `<span class="pill" style="background:${pc}1a;color:${pc}">

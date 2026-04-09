@@ -93,8 +93,8 @@
       <div class="sync-dot" id="syncDot" data-s="ok" title="Sincronizado"></div>
       <button class="tbtn d-only" onclick="openExport()">&#8595; CSV</button>
       <button class="tbtn d-only" onclick="openImportModal()">&#8593; Importar</button>
-      <button class="tbtn d-only" onclick="openNotifSettings()" title="Notificações">🔔</button>
-      <button class="tbtn d-only" onclick="openThemeModal()" title="Tema">🎨</button>
+      <button class="tbtn d-only" onclick="openNotifSettings()" title="Notificações"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><path d="M8 2a4 4 0 0 0-4 4v3l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 13a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5"/></svg></button>
+      <button class="tbtn d-only" onclick="openThemeModal()" title="Tema"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><circle cx="5.5" cy="6.5" r="1" fill="currentColor"/><circle cx="10.5" cy="6.5" r="1" fill="currentColor"/><circle cx="8" cy="10.5" r="1" fill="currentColor"/></svg></button>
       <button class="user-btn d-only" onclick="openModal('modalUser')">
         <div class="user-avatar" id="topAvatar"></div>
         <span class="user-email" id="topEmail"></span>
@@ -394,16 +394,16 @@
       <div class="panel" id="panel-compromissos">
         <!-- Desktop -->
         <div class="d-only">
-          <div class="cm-section-title">🔄 Recorrências</div>
+          <div class="cm-section-title">Recorrências</div>
           <div class="cm-list" id="cmRecurringDesk"></div>
-          <div class="cm-section-title">📦 Parcelamentos</div>
+          <div class="cm-section-title">Parcelamentos</div>
           <div class="cm-list" id="cmInstallDesk"></div>
         </div>
         <!-- Mobile -->
         <div class="m-only" style="padding:0 1rem 1rem">
-          <div class="cm-section-title">🔄 Recorrências</div>
+          <div class="cm-section-title">Recorrências</div>
           <div class="cm-list" id="cmRecurringM"></div>
-          <div class="cm-section-title">📦 Parcelamentos</div>
+          <div class="cm-section-title">Parcelamentos</div>
           <div class="cm-list" id="cmInstallM"></div>
         </div>
       </div><!-- /panel-compromissos -->
@@ -412,14 +412,14 @@
       <div class="panel" id="panel-cartoes">
         <div class="d-only">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <div class="cm-section-title" style="margin:0">💳 Meus cartões</div>
+            <div class="cm-section-title" style="margin:0">Meus cartões</div>
             <button class="btn-p" style="font-size:12px;padding:6px 14px" onclick="openCardForm()">+ Novo cartão</button>
           </div>
           <div id="cardsListDesk"></div>
         </div>
         <div class="m-only" style="padding:0 1rem 1rem">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <div class="cm-section-title" style="margin:0">💳 Meus cartões</div>
+            <div class="cm-section-title" style="margin:0">Meus cartões</div>
             <button class="btn-p" style="font-size:12px;padding:5px 12px" onclick="openCardForm()">+ Novo</button>
           </div>
           <div id="cardsListM"></div>
@@ -621,7 +621,7 @@
           <div class="tp-accent"></div>
           <div class="tp-pill"></div>
         </div>
-        <div class="theme-opt-label">🌑 Classic</div>
+        <div class="theme-opt-label">Classic</div>
         <div class="theme-opt-desc">Dark com verde lima</div>
       </button>
       <button class="theme-opt-btn" data-theme-opt="neon" onclick="applyTheme('neon')">
@@ -630,7 +630,7 @@
           <div class="tp-accent"></div>
           <div class="tp-pill"></div>
         </div>
-        <div class="theme-opt-label">✨ Neon</div>
+        <div class="theme-opt-label">Neon</div>
         <div class="theme-opt-desc">Dark com ícones glow</div>
       </button>
     </div>
@@ -915,10 +915,10 @@
       <span class="menu-icon">★</span> Nova meta
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openNotifSettings()">
-      <span class="menu-icon">🔔</span> Notificações
+      <span class="menu-icon"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><path d="M8 2a4 4 0 0 0-4 4v3l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 13a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5"/></svg></span> Notificações
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openThemeModal()">
-      <span class="menu-icon">🎨</span> Tema
+      <span class="menu-icon"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><circle cx="5.5" cy="6.5" r="1" fill="currentColor"/><circle cx="10.5" cy="6.5" r="1" fill="currentColor"/><circle cx="8" cy="10.5" r="1" fill="currentColor"/></svg></span> Tema
     </button>
     <button class="menu-item danger" onclick="handleSignOut()">
       <span class="menu-icon">→</span> Sair da conta

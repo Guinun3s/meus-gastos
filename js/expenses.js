@@ -351,7 +351,7 @@ function deleteExpense(id) {
 
   if (exp.recurringId) {
     openDeleteModal(
-      '🔄 Lançamento recorrente',
+      'Lançamento recorrente',
       'Como deseja remover?',
       'Só este mês',     () => { _decrementGoalForExpense(exp); saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Removido.'); },
       'Este e os futuros', () => {
@@ -369,7 +369,7 @@ function deleteExpense(id) {
     );
   } else if (exp.installmentId) {
     openDeleteModal(
-      `📦 Parcela ${exp.installmentN}/${exp.installmentTotal}`,
+      `Parcela ${exp.installmentN}/${exp.installmentTotal}`,
       'Como deseja remover?',
       'Só esta parcela', () => { _decrementGoalForExpense(exp); saveExp(loadExp().filter(e => e.id !== id)); render(); toast('Parcela removida.'); },
       'Todas as parcelas', () => { _deleteAllInstallments(exp.installmentId); render(); toast('Parcelamento removido.'); }
@@ -545,11 +545,11 @@ function _setSheetAddMode(mode) {
 // ── Badges de tipo ────────────────────────────────────────────
 function _typeBadge(e) {
   let badge = '';
-  if (e.recurringId)   badge += ` <span class="badge-rec" title="Recorrente ${e.recurringIdx+1}/${e.recurringTotal}">🔄</span>`;
-  if (e.installmentId) badge += ` <span class="badge-inst" title="${fmt(e.installmentValorTotal||0)} total">${e.installmentN}/${e.installmentTotal}</span>`;
+  if (e.recurringId)   badge += ` <span class="badge-rec" title="Recorrente ${e.recurringIdx+1}/${e.recurringTotal}">${uiIcon('recurring')} ${e.recurringIdx+1}/${e.recurringTotal}</span>`;
+  if (e.installmentId) badge += ` <span class="badge-inst" title="${fmt(e.installmentValorTotal||0)} total">${uiIcon('installment')} ${e.installmentN}/${e.installmentTotal}</span>`;
   if (e.cardId) {
     const card = loadCards().find(c => c.id === e.cardId);
-    if (card) badge += ` <span class="badge-card" style="background:${card.color}1a;color:${card.color}">💳 ${card.name}</span>`;
+    if (card) badge += ` <span class="badge-card" style="background:${card.color}1a;color:${card.color}">${uiIcon('card')} ${card.name}</span>`;
   }
   return badge;
 }
@@ -581,12 +581,10 @@ function _renderDesktopTable(list) {
   }
 
   tbody.innerHTML = list.map(e => {
-    const goalPin = e.cat === 'meta' ? ' <span style="font-size:10px;opacity:.55">🎯</span>' : '';
-    const initial = (e.desc || '?')[0].toUpperCase();
-    const av = _avatarStyle(e.desc || '');
+    const goalPin = ''; // meta pin shown via category icon
     const descCell = isNeonTheme()
       ? `<span class="neon-avatar">
-           <span class="neon-avatar-circle" style="background:${av.bg};color:${av.color}">${initial}</span>
+           <span class="neon-cat-avatar">${catIconSVG(e.cat)}</span>
            <span>${e.desc}${goalPin}${_typeBadge(e)}</span>
          </span>`
       : `${e.desc}${goalPin}${_typeBadge(e)}`;
@@ -615,20 +613,32 @@ function _renderMobileCards(list) {
 
   el.innerHTML = list.map(e => {
     const goalPin = e.cat === 'meta' ? ' ★' : '';
-    return `<div class="m-exp-card">
-      <div class="m-exp-desc">${e.desc}${goalPin}${_typeBadge(e)}</div>
-      <div class="m-exp-valor">${fmt(e.valor)}</div>
-      <div class="m-exp-meta">
-        ${catPill(e.cat)}
-        ${payPill(e.pay)}
-      </div>
-      <div class="m-exp-foot">
-        <span class="m-exp-date">${fmtDate(e.data)}</span>
-        <div style="display:flex;gap:4px">
-          <button class="m-edit-btn" onclick="openEditExpense(${e.id})">✎</button>
-          <button class="m-del-btn"  onclick="deleteExpense(${e.id})">×</button>
-        </div>
-      </div>
-    </div>`;
+    const mHeader = isNeonTheme()
+      ? `<div class="m-neon-card-head">
+           <span class="neon-cat-avatar">${catIconSVG(e.cat)}</span>
+           <div style="flex:1;min-width:0">
+             <div class="m-exp-desc">${e.desc}${goalPin}${_typeBadge(e)}</div>
+             <div class="m-exp-meta">${catPill(e.cat)}${payPill(e.pay)}</div>
+           </div>
+           <div class="m-exp-valor">${fmt(e.valor)}</div>
+         </div>
+         <div class="m-exp-foot">
+           <span class="m-exp-date">${fmtDate(e.data)}</span>
+           <div style="display:flex;gap:4px">
+             <button class="m-edit-btn" onclick="openEditExpense(${e.id})">✎</button>
+             <button class="m-del-btn"  onclick="deleteExpense(${e.id})">×</button>
+           </div>
+         </div>`
+      : `<div class="m-exp-desc">${e.desc}${goalPin}${_typeBadge(e)}</div>
+         <div class="m-exp-valor">${fmt(e.valor)}</div>
+         <div class="m-exp-meta">${catPill(e.cat)}${payPill(e.pay)}</div>
+         <div class="m-exp-foot">
+           <span class="m-exp-date">${fmtDate(e.data)}</span>
+           <div style="display:flex;gap:4px">
+             <button class="m-edit-btn" onclick="openEditExpense(${e.id})">✎</button>
+             <button class="m-del-btn"  onclick="deleteExpense(${e.id})">×</button>
+           </div>
+         </div>`;
+    return `<div class="m-exp-card">${mHeader}</div>`;
   }).join('');
 }

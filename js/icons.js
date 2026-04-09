@@ -371,3 +371,93 @@ function navIconSVG(navId) {
 function isNeonTheme() {
   return document.documentElement.getAttribute('data-theme') === 'neon';
 }
+
+// ── Ícones de UI (badges, estados, analytics) ─────────────────
+const UI_ICONS = {
+
+  recurring: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;vertical-align:middle">
+    <path d="M13 8A5 5 0 1 1 8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M8 1l3 2-3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+
+  installment: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;vertical-align:middle">
+    <rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M5 3V1M11 3V1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+
+  card: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;vertical-align:middle">
+    <rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M1 7h14" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="3" y="9.5" width="5" height="1.5" rx=".75" fill="currentColor"/>
+  </svg>`,
+
+  warning: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;vertical-align:middle">
+    <path d="M8 2L15 14H1L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M8 6v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="8" cy="12" r=".75" fill="currentColor"/>
+  </svg>`,
+
+  critical: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;vertical-align:middle">
+    <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M8 4v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="8" cy="11.5" r=".75" fill="currentColor"/>
+  </svg>`,
+
+  chartUp: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;vertical-align:middle">
+    <path d="M2 12L6 8 9 10 14 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M11 4h3v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+
+  calendar: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;vertical-align:middle">
+    <rect x="1.5" y="2.5" width="13" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M1.5 7h13" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <rect x="4" y="10" width="2" height="2" rx=".5" fill="currentColor" opacity=".7"/>
+    <rect x="7" y="10" width="2" height="2" rx=".5" fill="currentColor" opacity=".7"/>
+    <rect x="10" y="10" width="2" height="2" rx=".5" fill="currentColor" opacity=".7"/>
+  </svg>`,
+
+  piggy: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;vertical-align:middle">
+    <ellipse cx="8" cy="9" rx="5" ry="4" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M3 10l-1.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M13 10l1.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="6" cy="8" r=".75" fill="currentColor"/>
+    <path d="M9 5.5c0-1.5 4-1.5 4 0s-1.5 2-2 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M8 6V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+
+  bell: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;vertical-align:middle">
+    <path d="M8 2a4 4 0 0 0-4 4v3l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M6 13a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5"/>
+  </svg>`,
+
+  empty: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;vertical-align:middle">
+    <rect x="2" y="4" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M6 8h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+
+  palette: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;vertical-align:middle">
+    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="5.5" cy="6.5" r="1" fill="currentColor"/>
+    <circle cx="10.5" cy="6.5" r="1" fill="currentColor"/>
+    <circle cx="8" cy="10" r="1" fill="currentColor"/>
+    <circle cx="5.5" cy="9.5" r="1" fill="currentColor"/>
+    <circle cx="10.5" cy="9.5" r="1" fill="currentColor"/>
+  </svg>`,
+
+  moon: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;vertical-align:middle">
+    <path d="M13 10a6 6 0 1 1-7-7 4.5 4.5 0 0 0 7 7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  </svg>`,
+
+  star4: `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;vertical-align:middle">
+    <path d="M8 1l1.5 5.5L15 8l-5.5 1.5L8 15l-1.5-5.5L1 8l5.5-1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="currentColor" opacity=".8"/>
+  </svg>`,
+};
+
+function uiIcon(name, color) {
+  const svg = UI_ICONS[name] || '';
+  if (!color) return svg;
+  return svg.replace(/currentColor/g, color);
+}

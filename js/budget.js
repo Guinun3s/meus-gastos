@@ -83,7 +83,7 @@ function checkBudgetAlerts() {
     const over  = s > b;
     const key   = `${c.id}_${over ? 'over' : 'near'}`;
     const color = over ? 'var(--red)' : '#f0b860';
-    const icon  = over ? '🚨' : '⚠️';
+    const icon  = over ? uiIcon('critical','#ff4060') : uiIcon('warning','#ffaa00');
     const msg   = over
       ? `${c.name}: orçamento excedido em ${fmt(s - b)}`
       : `${c.name}: ${pct}% do orçamento usado`;

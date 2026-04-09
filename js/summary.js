@@ -41,7 +41,7 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
   // Painel banco / dinheiro
   html += `<div class="m-saldo-split">
     <div class="m-saldo-item">
-      <span class="m-saldo-icon">💳</span>
+      ${uiIcon("card")}
       <div>
         <div class="m-saldo-label">Banco</div>
         <div class="m-saldo-val ${saldoBanco >= 0 ? 'green' : 'red'}">${(saldoBanco < 0 ? '−' : '') + fmt(Math.abs(saldoBanco))}</div>
@@ -97,7 +97,7 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
   const cards = _cache.cards || [];
   if (cards.length) {
     const allExps = _cache.expenses[mKey()] || [];
-    html += '<div class="m-cat-title">💳 cartões</div>';
+    html += `<div class="m-cat-title">${uiIcon('card')} cartões</div>`;
     cards.forEach(c => {
       const gasto  = allExps.filter(e => e.pay === 'credito' && e.cardId === c.id)
                             .reduce((s, e) => s + e.valor, 0);
@@ -141,7 +141,7 @@ function renderSidebar() {
       <div class="s-label">saldo disponível</div>
       <div class="s-bal-split">
         <div class="s-bal-item">
-          <span class="s-bal-icon">💳</span>
+          ${uiIcon('card')}
           <div>
             <div class="s-bal-sub">Banco</div>
             <div class="s-bal-val ${saldoBanco >= 0 ? 'green' : 'red'}">${(saldoBanco < 0 ? '−' : '') + fmt(Math.abs(saldoBanco))}</div>

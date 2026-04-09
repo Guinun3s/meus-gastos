@@ -3,8 +3,8 @@
 // ============================================================
 
 const THEME_DEFS = {
-  classic: { label: 'Classic', icon: '🌑' },
-  neon:    { label: 'Neon',    icon: '✨' },
+  classic: { label: 'Classic', icon: '' },
+  neon:    { label: 'Neon',    icon: '' },
 };
 
 let _curTheme = 'classic';

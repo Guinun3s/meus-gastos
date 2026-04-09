@@ -2,7 +2,7 @@
 // js/incomes.js — receitas: adicionar, editar, remover, listar
 // ============================================================
 
-const TIPO_LABELS = { banco: '💳 Banco', dinheiro: '💵 Dinheiro' };
+const TIPO_LABELS = { banco: 'Banco', dinheiro: 'Dinheiro' };
 const TIPO_COLORS = { banco: '#60a8f0', dinheiro: '#7ab648' };
 
 // ── Adicionar (desktop) ──────────────────────────────────────
@@ -163,7 +163,7 @@ function _renderIncomesMobile(list) {
   if (!el) return;
 
   if (!list.length) {
-    el.innerHTML = '<div class="m-empty">💰 Nenhuma receita lançada.</div>';
+    el.innerHTML = '<div class="m-empty">Nenhuma receita lançada.</div>';
     return;
   }
 
