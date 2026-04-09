@@ -28,9 +28,14 @@ function applyTheme(themeId, save = true) {
 
 function loadSavedTheme() {
   const saved = localStorage.getItem('theme') || 'classic';
-  // Aplica sem salvar (já está salvo) e sem re-render (dados ainda carregando)
   _curTheme = saved;
   document.documentElement.setAttribute('data-theme', saved);
+  // Atualiza ícones da nav e botões do modal sem re-renderizar dados
+  if (typeof _refreshNavIcons === 'function') _refreshNavIcons();
+  _updateThemeBtns();
+  // Atualiza meta theme-color
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', saved === 'neon' ? '#06060f' : '#0e0e0f');
 }
 
 function _updateThemeBtns() {

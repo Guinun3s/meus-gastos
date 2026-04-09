@@ -1342,6 +1342,13 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
 [data-theme="neon"] .card:nth-child(4) .card-val   { color: #00ffaa; text-shadow: 0 0 20px rgba(0,255,160,0.6); }
 [data-theme="neon"] .card:nth-child(4) .card-val.red { color: #ff4060; text-shadow: 0 0 20px rgba(255,64,96,0.6); }
 
+/* Override global .green/.red/.amber para neon */
+[data-theme="neon"] .card-val.green { color: #00ffaa !important; text-shadow: 0 0 20px rgba(0,255,160,0.6); }
+[data-theme="neon"] .card-val.red   { color: #ff4060 !important; text-shadow: 0 0 20px rgba(255,64,96,0.6); }
+[data-theme="neon"] .card-val.amber { color: #ffaa00 !important; text-shadow: 0 0 16px rgba(255,170,0,0.5); }
+[data-theme="neon"] .green { color: #00ffaa !important; }
+[data-theme="neon"] .red   { color: #ff4060 !important; }
+
 [data-theme="neon"] .card-val   { font-size: 22px; font-weight: 800; font-family: 'Nunito', sans-serif; }
 [data-theme="neon"] .card-sub   { font-size: 12px; color: var(--text3); font-weight: 600; margin-top: 4px; }
 [data-theme="neon"] .card-label { font-size: 10px; font-weight: 800; margin-bottom: 10px; }

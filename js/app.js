@@ -44,6 +44,8 @@ function applyUpdate() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Aplica tema salvo (garante _curTheme correto e ícones da nav)
+  if (typeof loadSavedTheme === 'function') loadSavedTheme();
   initOverlayClose();
   buildGoalPickers();
 
