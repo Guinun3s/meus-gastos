@@ -48,7 +48,7 @@ function _refreshNavIcons() {
       // Restore text icons
       const fallbacks = {
         home:'⌂', lancamentos:'≡', receitas:'↑', graficos:'◎',
-        historico:'⏱', orcamento:'◈', metas:'★', compromissos:'⊟', cartoes:'💳', menu:'☰'
+        historico:'⏱', orcamento:'◈', metas:'★', compromissos:'⊟', cartoes:'💳', menu:'☰', investimentos:'↗'
       };
       el.textContent = fallbacks[key] || '';
     }

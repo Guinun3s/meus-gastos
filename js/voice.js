@@ -125,11 +125,16 @@ function _parseVoiceInput(text) {
 function _fillFormWithVoice({ desc, valor, cat, pay, isReceita }) {
   const mob = isMobile();
 
+  // Detecta aba/modo atual no extrato (desktop)
+  const extratoType = typeof _extratoType !== 'undefined' ? _extratoType : 'gastos';
+  const currentTabIsReceita = extratoType === 'receitas';
+  // Se o usuário não detectou receita pela fala mas está na aba receitas, força receita
+  const forceReceita = isReceita || currentTabIsReceita;
+
   if (mob) {
-    // Abre sheetAdd com o modo correto
     openAddSheet();
-    if (isReceita) setAddSheetMode('receita');
-    else           setAddSheetMode('gasto');
+    if (forceReceita) setAddSheetMode('receita');
+    else              setAddSheetMode('gasto');
 
     setTimeout(() => {
       const d = document.getElementById('mDesc');
@@ -138,20 +143,36 @@ function _fillFormWithVoice({ desc, valor, cat, pay, isReceita }) {
       const p = document.getElementById('mPaySelect');
       if (d) d.value = desc;
       if (v && valor) v.value = valor;
-      if (c && !isReceita) { c.value = cat; if (typeof onCatChange === 'function') onCatChange(c); }
-      if (p && !isReceita) { p.value = pay; if (typeof onPayChange === 'function') onPayChange(p); }
+      if (!forceReceita) {
+        if (c) { c.value = cat; if (typeof onCatChange === 'function') onCatChange(c); }
+        if (p) { p.value = pay; if (typeof onPayChange === 'function') onPayChange(p); }
+      }
     }, 200);
   } else {
-    const d = document.getElementById('desc');
-    const v = document.getElementById('valor');
-    const c = document.getElementById('catSelect');
-    const p = document.getElementById('paySelect');
-    if (d) d.value = desc;
-    if (v && valor) v.value = valor;
-    if (c && !isReceita) c.value = cat;
-    if (p && !isReceita) p.value = pay;
-    if (isReceita) switchTab('receitas', document.querySelector('.tab:nth-child(2)'));
-    toast('Formulário preenchido — revise e confirme!');
+    if (forceReceita) {
+      // Preenche formulário de receita (campo incDesc não existe mais no extrato)
+      // Usa o sheetIncome se mobile, ou adiciona direto
+      const r = { id: Date.now(), desc, valor: valor || 0,
+                  data: new Date().toISOString().split('T')[0], tipo: 'banco' };
+      const list = loadInc();
+      list.unshift(r);
+      saveInc(list);
+      // Muda para aba receitas no extrato
+      if (typeof setExtratoType === 'function') setExtratoType('receitas',
+        document.querySelector('[data-etype="receitas"]'));
+      render();
+      toast(`Receita "${desc}" adicionada — R$ ${fmt(valor || 0)}`);
+    } else {
+      const d = document.getElementById('desc');
+      const v = document.getElementById('valor');
+      const c = document.getElementById('catSelect');
+      const p = document.getElementById('paySelect');
+      if (d) d.value = desc;
+      if (v && valor) v.value = valor;
+      if (c) c.value = cat;
+      if (p) p.value = pay;
+      toast('Formulário preenchido — revise e confirme!');
+    }
   }
 }
 

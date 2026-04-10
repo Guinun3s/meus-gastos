@@ -610,21 +610,114 @@ function _typeBadge(e) {
   return badge;
 }
 
-// ── Renderizar tabela (desktop) e cards (mobile) ─────────────
-function renderExpenses() {
-  const fc  = document.getElementById('filterCat').value;
-  const fp  = document.getElementById('filterPay').value;
-  const fsD = (document.getElementById('filterSearch')  || {}).value || '';
-  const fsM = (document.getElementById('filterSearchM') || {}).value || '';
+
+// ── Extrato: tipo de lançamento exibido ─────────────────────
+let _extratoType = 'gastos'; // 'gastos' | 'receitas' | 'todos'
+
+function setExtratoType(type, btn) {
+  _extratoType = type;
+  // Atualiza botões
+  document.querySelectorAll('.extrato-type-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.etype === type)
+  );
+  // Mostra/oculta formulários de gasto e filtros de categoria/pagamento
+  const isGasto  = type === 'gastos' || type === 'todos';
+  const formGasto = document.querySelector('.form-row.d-only');
+  if (formGasto) formGasto.style.display = type === 'receitas' ? 'none' : '';
+
+  // Mostrar/ocultar filtro de categoria (só faz sentido em gastos)
+  const fcEl = document.getElementById('filterCat');
+  const fpEl = document.getElementById('filterPay');
+  if (fcEl) fcEl.closest('.fld, select')?.parentElement;
+
+  renderExtrato();
+}
+
+function renderExtrato() {
+  const fc = document.getElementById('filterCat')?.value || '';
+  const fp = document.getElementById('filterPay')?.value || '';
+  const fsD = document.getElementById('filterSearch')?.value  || '';
+  const fsM = document.getElementById('filterSearchM')?.value || '';
   const fs  = (isMobile() ? fsM : fsD).toLowerCase();
 
-  let list = loadExp();
+  if (_extratoType === 'receitas') {
+    // Mostra receitas na tabela de extrato
+    _renderExtratoReceitas(fs);
+    return;
+  }
+
+  let list = loadExp().filter(e => e.cat !== 'investimento');
+  if (_extratoType === 'gastos') {
+    // Só gastos (sem investimentos — já filtrado)
+  }
+  // 'todos' inclui tudo exceto investimentos (que têm aba própria)
+
   if (fc) list = list.filter(e => e.cat === fc);
   if (fp) list = list.filter(e => e.pay === fp);
-  if (fs) list = list.filter(e => e.desc.toLowerCase().includes(fs));
+  if (fs) list = list.filter(e => e.desc?.toLowerCase().includes(fs));
 
   _renderDesktopTable(list);
   _renderMobileCards(list);
+}
+
+function _renderExtratoReceitas(fs) {
+  const incomes = loadInc().filter(e =>
+    !fs || e.desc?.toLowerCase().includes(fs)
+  );
+
+  const tbody = document.getElementById('expenseTbody');
+  if (tbody) {
+    if (!incomes.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty">Nenhuma receita lançada.</div></td></tr>';
+    } else {
+      tbody.innerHTML = incomes.map(e => {
+        const color = e.tipo === 'banco' ? '#60b0ff' : '#40d090';
+        const label = e.tipo === 'banco' ? 'Banco' : 'Dinheiro';
+        return `<tr>
+          <td>${e.desc}</td>
+          <td><span class="pill" style="background:${color}1a;color:${color}">
+            <span class="pdot" style="background:${color}"></span>${label}</span></td>
+          <td></td>
+          <td class="td-date">${fmtDate(e.data)}</td>
+          <td class="td-r" style="color:var(--accent)">+${fmt(e.valor)}</td>
+          <td>
+            <button class="td-del" onclick="deleteIncome(${e.id})" title="Remover">×</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  const mEl = document.getElementById('mExpenseList');
+  if (mEl) {
+    if (!incomes.length) {
+      mEl.innerHTML = '<div class="m-empty">Nenhuma receita lançada.</div>';
+    } else {
+      mEl.innerHTML = incomes.map(e => {
+        const color = e.tipo === 'banco' ? '#60b0ff' : '#40d090';
+        const label = e.tipo === 'banco' ? 'Banco' : 'Dinheiro';
+        return `<div class="m-exp-card">
+          <div class="m-exp-desc">${e.desc}</div>
+          <div class="m-exp-valor" style="color:var(--accent)">+${fmt(e.valor)}</div>
+          <div class="m-exp-meta">
+            <span class="pill" style="background:${color}1a;color:${color}">
+              <span class="pdot" style="background:${color}"></span>${label}
+            </span>
+          </div>
+          <div class="m-exp-foot">
+            <span class="m-exp-date">${fmtDate(e.data)}</span>
+            <button class="m-del-btn" onclick="deleteIncome(${e.id})">×</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+// ── Renderizar tabela (desktop) e cards (mobile) ─────────────
+function renderExpenses() {
+  // Delega para renderExtrato que gerencia os tipos
+  renderExtrato();
 }
 
 function _renderDesktopTable(list) {
