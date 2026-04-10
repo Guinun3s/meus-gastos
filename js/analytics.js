@@ -272,9 +272,12 @@ function calcSaldoProjetado() {
   if (mesAtual !== today.getMonth() || anoAtual !== today.getFullYear()) return null;
 
   const receita    = calcReceitaTotal();
-  const gastosAte  = loadExp().reduce((s, e) => s + e.valor, 0);
+  // Exclui investimentos — eles são transferência de patrimônio, não gasto
+  const gastosAte  = loadExp()
+    .filter(e => e.cat !== 'investimento')
+    .reduce((s, e) => s + e.valor, 0);
 
-  // Compromissos recorrentes com entradas futuras neste mês
+  // Compromissos recorrentes com entradas futuras neste mês (excluindo investimentos)
   const todayStr = today.toISOString().split('T')[0];
   const lastDay  = new Date(anoAtual, mesAtual + 1, 0).toISOString().split('T')[0];
   let futurosRecorrentes = 0;
@@ -282,7 +285,7 @@ function calcSaldoProjetado() {
   // Varre todos os meses do cache para encontrar recorrentes futuros
   Object.values(_cache.expenses || {}).forEach(list => {
     (list || []).forEach(e => {
-      if (e.recurringId && e.data > todayStr && e.data <= lastDay) {
+      if (e.recurringId && e.data > todayStr && e.data <= lastDay && e.cat !== 'investimento') {
         futurosRecorrentes += e.valor;
       }
     });
@@ -292,7 +295,7 @@ function calcSaldoProjetado() {
   const diasNoMes      = new Date(anoAtual, mesAtual + 1, 0).getDate();
   const diasRestantes  = diasNoMes - diasPassados;
 
-  // Projeção de gastos variáveis pelo ritmo diário dos dias passados
+  // Projeção de gastos variáveis pelo ritmo diário (só gastos reais)
   const ritmo = diasPassados > 0 ? gastosAte / diasPassados : 0;
   const gastoVariavelProjetado = ritmo * diasRestantes;
 

@@ -32,19 +32,26 @@ function calcReceitaTotal()    { return calcReceitaBanco() + calcReceitaDinheiro
 // Gastos no banco: exclui crédito (não saiu ainda) — inclui pagamentos de fatura (faturaCardId)
 function calcGastosBanco()    {
   return loadExp()
-    .filter(e => BANK_PAYS.includes(e.pay) || e.faturaCardId)
+    .filter(e => (BANK_PAYS.includes(e.pay) || e.faturaCardId) && e.cat !== 'investimento')
     .reduce((s, e) => s + e.valor, 0);
 }
 function calcGastosDinheiro() { return loadExp().filter(e => e.pay === "dinheiro").reduce((s, e) => s + e.valor, 0); }
 
 function calcSaldoBanco()    { return calcReceitaBanco()    - calcGastosBanco(); }
 function calcSaldoDinheiro() { return calcReceitaDinheiro() - calcGastosDinheiro(); }
-// Saldo real exclui gastos no crédito (dívida futura) — só conta quando a fatura é paga
+// Saldo real: exclui crédito (dívida futura) E investimentos (patrimônio, não gasto)
 function calcSaldoReal() {
-  const gastosSemCredito = loadExp()
-    .filter(e => e.pay !== 'credito')
+  const gastos = loadExp()
+    .filter(e => e.pay !== 'credito' && e.cat !== 'investimento')
     .reduce((s, e) => s + e.valor, 0);
-  return calcReceitaTotal() - gastosSemCredito;
+  return calcReceitaTotal() - gastos;
+}
+
+// Retorna total de gastos reais (sem investimentos e sem crédito ainda não pago)
+function calcGastosReais() {
+  return loadExp()
+    .filter(e => e.pay !== 'credito' && e.cat !== 'investimento')
+    .reduce((s, e) => s + e.valor, 0);
 }
 
 // ── Totais por categoria ──────────────────────────────────────

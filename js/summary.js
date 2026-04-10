@@ -30,9 +30,9 @@ function renderSummary() {
     srM.textContent = (saldoReal < 0 ? '−' : '') + fmt(Math.abs(saldoReal));
     srM.className = 'card-val m-hero-val ' + (saldoReal >= 0 ? 'green' : 'red');
   }
-  if (spm) spm.textContent = receita > 0 ? Math.round(totalAll / receita * 100) + '% utilizado' : 'sem receita lançada';
+  if (spm) spm.textContent = receita > 0 ? Math.round(gastos / receita * 100) + '% em gastos' : 'sem receita lançada';
 
-  const pct = receita > 0 ? Math.round(totalAll / receita * 100) + '% da receita' : 'sem receita lançada';
+  const pct = receita > 0 ? Math.round(gastos / receita * 100) + '% em gastos' : 'sem receita lançada';
   document.getElementById('saldoPct').textContent = pct;
 
   renderMobileExtras(receita, totalAll, ct, saldoBanco, saldoDin);
@@ -47,12 +47,14 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
 
   // Barra de progresso do mês
   if (receita > 0) {
-    const usedPct = Math.min(100, Math.round(total / receita * 100));
-    const saldo   = receita - total;
-    const barColor = total > receita ? 'var(--red)' : 'var(--accent)';
+    // gastos reais = total excluindo investimentos
+    const gastosReais = total - (ct['investimento'] || 0);
+    const usedPct = Math.min(100, Math.round(gastosReais / receita * 100));
+    const saldo   = receita - gastosReais;
+    const barColor = gastosReais > receita ? 'var(--red)' : 'var(--accent)';
     html += `<div class="m-progress-card">
       <div class="m-progress-row">
-        <span class="m-progress-label">Utilizado do mês</span>
+        <span class="m-progress-label">Gastos do mês</span>
         <span class="m-progress-pct" style="color:${barColor}">${usedPct}%</span>
       </div>
       <div class="m-progress-bar-bg">
