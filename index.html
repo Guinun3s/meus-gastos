@@ -93,6 +93,12 @@
       <div class="sync-dot" id="syncDot" data-s="ok" title="Sincronizado"></div>
       <button class="tbtn d-only" onclick="openExport()">&#8595; CSV</button>
       <button class="tbtn d-only" onclick="openImportModal()">&#8593; Importar</button>
+      <button class="tbtn" onclick="openGlobalSearch()" title="Busca global" id="btnGlobalSearch">
+        <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle">
+          <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
       <button class="tbtn d-only" onclick="openNotifSettings()" title="Notificações"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><path d="M8 2a4 4 0 0 0-4 4v3l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 13a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5"/></svg></button>
       <button class="tbtn d-only" onclick="openThemeModal()" title="Tema"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><circle cx="5.5" cy="6.5" r="1" fill="currentColor"/><circle cx="10.5" cy="6.5" r="1" fill="currentColor"/><circle cx="8" cy="10.5" r="1" fill="currentColor"/></svg></button>
       <button class="user-btn d-only" onclick="openModal('modalUser')">
@@ -111,6 +117,7 @@
       <div id="sidebarBalance"></div>
       <div id="sidebarSit"></div>
       <div id="previsaoSidebar"></div>
+      <div id="projSidebar"></div>
       <div id="sidebarCardsWrap">
         <div class="s-label" id="sidebarCardsLabel" style="margin-top:16px">💳 cartões</div>
         <div id="sidebarCards"></div>
@@ -738,9 +745,14 @@
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheetAddTitle">Novo lançamento</div>
     <!-- Toggle Gasto / Receita -->
-    <div class="add-type-toggle" id="addTypeToggle">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div class="add-type-toggle" id="addTypeToggle" style="flex:1;margin-bottom:0">
       <button class="add-type-btn active" id="addTypeBtnGasto" onclick="setAddSheetMode('gasto')">Gasto</button>
       <button class="add-type-btn" id="addTypeBtnReceita" onclick="setAddSheetMode('receita')">Receita</button>
+      </div>
+      <button class="voice-btn" onclick="toggleVoiceInput()" title="Lançar por voz">
+        <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><rect x="5" y="1" width="6" height="9" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 8a5 5 0 0 0 10 0M8 13v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
     </div>
     <div class="form-field">
       <label class="m-flabel">Descrição</label>
@@ -803,7 +815,15 @@
         <option value="dinheiro">Dinheiro</option>
       </select>
     </div>
-    <button class="btn-submit" id="sheetAddBtn" onclick="saveExpenseMobile()">Adicionar lançamento</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn-submit" id="sheetAddBtn" onclick="saveExpenseMobile()" style="flex:1">Adicionar</button>
+      <button class="btn-tpl-save" onclick="saveCurrentAsTemplate()" title="Salvar como template">
+        <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle">
+          <path d="M13 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5l-3-3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M9 2v3h4M6 9h4M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1011,7 +1031,52 @@
 <script src="js/notifications.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/commitments.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/templates.js"></script>
+<script src="js/search.js"></script>
 <script src="js/app.js"></script>
 
+
+
+<!-- Templates panel (desktop) -->
+<div id="templatesPanel" class="tpl-panel">
+  <div class="tpl-panel-header">
+    <span class="tpl-panel-title">Templates</span>
+    <div style="display:flex;gap:6px">
+      <button class="btn-s" style="font-size:11px;padding:4px 10px" onclick="saveCurrentAsTemplate()">+ Salvar atual</button>
+      <button class="gs-close" onclick="closeTemplatesPanel()">✕</button>
+    </div>
+  </div>
+  <div id="templatesList" class="tpl-list"></div>
+</div>
+
+<!-- Overlay: busca global -->
+<div id="globalSearchOverlay" class="gs-overlay">
+  <div class="gs-modal">
+    <div class="gs-header">
+      <svg viewBox="0 0 16 16" fill="none" class="gs-icon">
+        <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input id="globalSearchInput" class="gs-input" type="text"
+        placeholder="Buscar em todos os meses..."
+        oninput="onGlobalSearchInput(this.value)"
+        onkeydown="if(event.key==='Escape') closeGlobalSearch()"
+        autocomplete="off" />
+      <button class="gs-close" onclick="closeGlobalSearch()">✕</button>
+    </div>
+    <div id="globalSearchResults" class="gs-results"></div>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    openGlobalSearch();
+  }
+});
+</script>
 </body>
 </html>

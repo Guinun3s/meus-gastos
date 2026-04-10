@@ -258,3 +258,92 @@ function renderDowChart() {
     }
   });
 }
+
+// ── Saldo projetado no fim do mês ─────────────────────────
+// Lógica: receita do mês (já lançada + recorrências futuras conhecidas)
+//       - gastos já lançados
+//       - compromissos recorrentes ainda não lançados neste mês
+function calcSaldoProjetado() {
+  const today      = new Date();
+  const mesAtual   = curMonth; // 0-indexed
+  const anoAtual   = curYear;
+
+  // Só faz sentido no mês atual
+  if (mesAtual !== today.getMonth() || anoAtual !== today.getFullYear()) return null;
+
+  const receita    = calcReceitaTotal();
+  const gastosAte  = loadExp().reduce((s, e) => s + e.valor, 0);
+
+  // Compromissos recorrentes com entradas futuras neste mês
+  const todayStr = today.toISOString().split('T')[0];
+  const lastDay  = new Date(anoAtual, mesAtual + 1, 0).toISOString().split('T')[0];
+  let futurosRecorrentes = 0;
+
+  // Varre todos os meses do cache para encontrar recorrentes futuros
+  Object.values(_cache.expenses || {}).forEach(list => {
+    (list || []).forEach(e => {
+      if (e.recurringId && e.data > todayStr && e.data <= lastDay) {
+        futurosRecorrentes += e.valor;
+      }
+    });
+  });
+
+  const diasPassados   = today.getDate();
+  const diasNoMes      = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const diasRestantes  = diasNoMes - diasPassados;
+
+  // Projeção de gastos variáveis pelo ritmo diário dos dias passados
+  const ritmo = diasPassados > 0 ? gastosAte / diasPassados : 0;
+  const gastoVariavelProjetado = ritmo * diasRestantes;
+
+  const projetado = receita - gastosAte - futurosRecorrentes - gastoVariavelProjetado;
+  const totalProjetado = gastosAte + futurosRecorrentes + gastoVariavelProjetado;
+
+  return {
+    receita,
+    gastosAte,
+    futurosRecorrentes,
+    gastoVariavelProjetado: Math.round(gastoVariavelProjetado * 100) / 100,
+    totalProjetado: Math.round(totalProjetado * 100) / 100,
+    projetado: Math.round(projetado * 100) / 100,
+    diasRestantes,
+    pctUsado: receita > 0 ? Math.round(totalProjetado / receita * 100) : 0,
+  };
+}
+
+// ── Render do saldo projetado (sidebar desktop + home mobile) ─
+function renderSaldoProjetado(targetId) {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+
+  const p = calcSaldoProjetado();
+
+  // Fora do mês atual — não mostra
+  if (!p) { el.innerHTML = ''; return; }
+
+  // Menos de 3 dias passados — dados insuficientes
+  if (calcReceitaTotal() === 0) { el.innerHTML = ''; return; }
+
+  const ok    = p.projetado >= 0;
+  const color = ok ? 'var(--accent)' : 'var(--red)';
+  const icon  = ok ? '↗' : '↘';
+  const label = ok ? 'Saldo projetado' : 'Déficit projetado';
+
+  el.innerHTML = `
+    <div class="proj-card">
+      <div class="proj-header">
+        <span class="proj-label">${uiIcon('chartUp')} ${label}</span>
+        <span class="proj-days">${p.diasRestantes}d restantes</span>
+      </div>
+      <div class="proj-val" style="color:${color}">${icon} ${fmt(Math.abs(p.projetado))}</div>
+      <div class="proj-detail">
+        <span>Fixos futuros: ${fmt(p.futurosRecorrentes)}</span>
+        <span>Variável previsto: ${fmt(p.gastoVariavelProjetado)}</span>
+      </div>
+      <div class="proj-bar-bg">
+        <div class="proj-bar-fill" style="width:${Math.min(100,p.pctUsado)}%;background:${p.pctUsado>100?'var(--red)':p.pctUsado>80?'var(--amber)':'var(--accent)'}"></div>
+      </div>
+      <div class="proj-pct" style="color:${color}">${p.pctUsado}% da receita previsto usar</div>
+    </div>`;
+}
+

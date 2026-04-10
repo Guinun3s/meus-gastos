@@ -112,12 +112,14 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
   }
 
   // Slot para o resumo semanal
-  html += `<div id="resumoSemHome"></div>`;
+  html += `<div id="projHome"></div><div id="resumoSemHome"></div>`;
 
   el.innerHTML = html;
 
   // Renderiza resumo semanal dentro do mHomeExtras após setar innerHTML
   if (typeof renderResumoSemanal === 'function') renderResumoSemanal('resumoSemHome');
+  // Saldo projetado
+  if (typeof renderSaldoProjetado === 'function') renderSaldoProjetado('projHome');
 }
 
 function renderSidebar() {
