@@ -241,34 +241,36 @@ function setAddSheetMode(mode) {
   _addSheetMode = mode;
 
   // Atualiza botões do toggle
-  document.getElementById('addTypeBtnGasto')?.classList.toggle('active', mode === 'gasto');
-  document.getElementById('addTypeBtnReceita')?.classList.toggle('active', mode === 'receita');
+  document.getElementById('addTypeBtnGasto')?.classList.toggle('active',       mode === 'gasto');
+  document.getElementById('addTypeBtnReceita')?.classList.toggle('active',     mode === 'receita');
+  document.getElementById('addTypeBtnInvest')?.classList.toggle('active',      mode === 'investimento');
 
-  // Mostra/esconde campos exclusivos de gasto
-  const gastoFields = ['mCatSelect', 'mPaySelect', 'mCardWrap', 'mGoalLinkWrap',
-                       'mExpType', 'mExpTypeExtra'];
-  const wrapperIds  = ['mCatSelect', 'mPaySelect', 'mExpType'];
+  // Mostra/oculta campos por modo
+  const gastoOnly = ['mCatSelect','mPaySelect','mExpType'];
   document.querySelectorAll('#sheetAdd .form-field').forEach(f => {
     const inp = f.querySelector('select, input');
     if (!inp) return;
-    const id = inp.id;
-    if (id === 'mCatSelect' || id === 'mPaySelect' || id === 'mExpType') {
-      f.style.display = mode === 'gasto' ? '' : 'none';
-    }
-    if (id === 'mIncTipoUnified') {
-      f.style.display = mode === 'receita' ? '' : 'none';
-    }
+    if (gastoOnly.includes(inp.id)) f.style.display = mode === 'gasto' ? '' : 'none';
   });
-  document.getElementById('mCardWrap').style.display = 'none';
+  // Campos extras de gasto
+  document.getElementById('mCardWrap').style.display    = 'none';
   document.getElementById('mGoalLinkWrap').style.display = 'none';
   document.getElementById('mExpTypeExtra').style.display = 'none';
+  // Tipo receita
+  const incWrap = document.getElementById('mIncTipoWrap');
+  if (incWrap) incWrap.style.display = mode === 'receita' ? '' : 'none';
+  // Tipo investimento
+  const invWrap = document.getElementById('mInvTipoWrap');
+  if (invWrap) invWrap.style.display = mode === 'investimento' ? '' : 'none';
 
-  // Atualiza título e botão
+  // Título e botão
+  const titles = { gasto:'Novo lançamento', receita:'Nova receita', investimento:'Novo investimento' };
+  const labels = { gasto:'Adicionar lançamento', receita:'Adicionar receita', investimento:'Adicionar investimento' };
+  const fns    = { gasto: saveExpenseMobile, receita: saveUnifiedIncomeMobile, investimento: saveInvestimentoMobile };
   const titleEl = document.getElementById('sheetAddTitle');
   const btnEl   = document.getElementById('sheetAddBtn');
-  if (titleEl) titleEl.textContent = mode === 'gasto' ? 'Novo lançamento' : 'Nova receita';
-  if (btnEl)   { btnEl.textContent = mode === 'gasto' ? 'Adicionar lançamento' : 'Adicionar receita';
-                 btnEl.onclick = mode === 'gasto' ? saveExpenseMobile : saveUnifiedIncomeMobile; }
+  if (titleEl) titleEl.textContent = titles[mode] || 'Novo lançamento';
+  if (btnEl)   { btnEl.textContent = labels[mode] || 'Adicionar'; btnEl.onclick = fns[mode] || saveExpenseMobile; }
 }
 
 function saveUnifiedIncomeMobile() {
@@ -610,21 +612,143 @@ function _typeBadge(e) {
   return badge;
 }
 
-// ── Renderizar tabela (desktop) e cards (mobile) ─────────────
-function renderExpenses() {
-  const fc  = document.getElementById('filterCat').value;
-  const fp  = document.getElementById('filterPay').value;
-  const fsD = (document.getElementById('filterSearch')  || {}).value || '';
-  const fsM = (document.getElementById('filterSearchM') || {}).value || '';
+
+// ── Extrato unificado: gastos + receitas + investimentos ────────
+function renderExtrato() {
+  const fc  = document.getElementById('filterCat')?.value  || '';
+  const fp  = document.getElementById('filterPay')?.value  || '';
+  const fsD = document.getElementById('filterSearch')?.value  || '';
+  const fsM = document.getElementById('filterSearchM')?.value || '';
   const fs  = (isMobile() ? fsM : fsD).toLowerCase();
 
-  let list = loadExp();
-  if (fc) list = list.filter(e => e.cat === fc);
-  if (fp) list = list.filter(e => e.pay === fp);
-  if (fs) list = list.filter(e => e.desc.toLowerCase().includes(fs));
+  // Monta lista unificada ordenada por data
+  let gastos = loadExp().filter(e => e.cat !== 'investimento'); // safety
+  if (fc) gastos = gastos.filter(e => e.cat === fc);
+  if (fp) gastos = gastos.filter(e => e.pay === fp);
+  if (fs) gastos = gastos.filter(e => e.desc?.toLowerCase().includes(fs));
 
-  _renderDesktopTable(list);
-  _renderMobileCards(list);
+  const receitas = fs
+    ? loadInc().filter(e => e.desc?.toLowerCase().includes(fs))
+    : loadInc();
+
+  const investimentos = fs
+    ? loadInv().filter(e => e.desc?.toLowerCase().includes(fs))
+    : loadInv();
+
+  // Unifica e ordena por data desc
+  const unified = [
+    ...gastos.map(e => ({ ...e, _tipo: 'gasto' })),
+    ...receitas.map(e => ({ ...e, _tipo: 'receita' })),
+    ...investimentos.map(e => ({ ...e, _tipo: 'investimento' })),
+  ].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+
+  _renderExtratoDesktop(unified);
+  _renderExtratoMobile(unified);
+}
+
+function _renderExtratoDesktop(unified) {
+  const tbody = document.getElementById('expenseTbody');
+  if (!tbody) return;
+  if (!unified.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty">Nenhum lançamento encontrado.</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = unified.map(e => {
+    let catCell = '', payCell = '', valColor = '', prefix = '';
+    if (e._tipo === 'gasto') {
+      catCell = catPill(e.cat);
+      payCell = payPill(e.pay);
+      valColor = 'var(--red)';
+      prefix = '−';
+    } else if (e._tipo === 'receita') {
+      const c = e.tipo === 'banco' ? '#60b0ff' : '#40d090';
+      const l = e.tipo === 'banco' ? 'Banco' : 'Dinheiro';
+      catCell = `<span class="pill" style="background:${c}1a;color:${c}"><span class="pdot" style="background:${c}"></span>Receita</span>`;
+      payCell = `<span class="pill" style="background:${c}1a;color:${c}"><span class="pdot" style="background:${c}"></span>${l}</span>`;
+      valColor = 'var(--accent)';
+      prefix = '+';
+    } else {
+      const { label, color } = _invMeta(e);
+      catCell = `<span class="pill" style="background:${color}1a;color:${color}"><span class="pdot" style="background:${color}"></span>${label}</span>`;
+      payCell = `<span class="pill extrato-inv-pill">Investimento</span>`;
+      valColor = '#60b0ff';
+      prefix = '↗';
+    }
+    const deleteBtn = e._tipo === 'gasto'
+      ? `<button class="td-edit" onclick="openEditExpense(${e.id})" title="Editar">✎</button>
+         <button class="td-del" onclick="deleteExpense(${e.id})">×</button>`
+      : e._tipo === 'receita'
+      ? `<button class="td-del" onclick="deleteIncome(${e.id})">×</button>`
+      : `<button class="td-del" onclick="deleteInvestimento(${e.id})">×</button>`;
+    return `<tr>
+      <td>${e.desc}${e._tipo === 'gasto' ? _typeBadge(e) : ''}</td>
+      <td>${catCell}</td><td>${payCell}</td>
+      <td class="td-date">${fmtDate(e.data)}</td>
+      <td class="td-r" style="color:${valColor}">${prefix}${fmt(e.valor)}</td>
+      <td>${deleteBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+function _invMeta(e) {
+  const tipo  = e.tipo || 'outros';
+  const INV_LABELS = {acoes:'Ações/FIIs',rendafixa:'Renda Fixa',tesouro:'Tesouro',cripto:'Cripto',poupanca:'Poupança',outros:'Outros'};
+  const INV_COLS   = {acoes:'#40d090',rendafixa:'#60b0ff',tesouro:'#00d8ff',cripto:'#ffb040',poupanca:'#c080ff',outros:'#8888a0'};
+  return { label: INV_LABELS[tipo]||tipo, color: INV_COLS[tipo]||'#888' };
+}
+
+function _renderExtratoMobile(unified) {
+  const el = document.getElementById('mExpenseList');
+  if (!el) return;
+  if (!unified.length) {
+    el.innerHTML = '<div class="m-empty">Nenhum lançamento encontrado.</div>';
+    return;
+  }
+  el.innerHTML = unified.map(e => {
+    let iconHtml, valColor, prefix, metaPill, delBtn;
+    if (e._tipo === 'gasto') {
+      iconHtml = isNeonTheme()
+        ? `<span class="neon-cat-avatar">${catIconSVG(e.cat)}</span>`
+        : `<span class="m-top-cat-dot" style="background:${catById(e.cat)?.color||'#888'}"></span>`;
+      metaPill = catPill(e.cat) + payPill(e.pay);
+      valColor = 'var(--red)'; prefix = '−';
+      delBtn = `<button class="m-edit-btn" onclick="openEditExpense(${e.id})">✎</button>
+                <button class="m-del-btn" onclick="deleteExpense(${e.id})">×</button>`;
+    } else if (e._tipo === 'receita') {
+      const c = e.tipo==='banco' ? '#60b0ff' : '#40d090';
+      iconHtml = `<span class="m-top-cat-dot" style="background:${c}"></span>`;
+      metaPill = `<span class="pill" style="background:${c}1a;color:${c};border-color:${c}40">Receita · ${e.tipo==='banco'?'Banco':'Dinheiro'}</span>`;
+      valColor = 'var(--accent)'; prefix = '+';
+      delBtn = `<button class="m-del-btn" onclick="deleteIncome(${e.id})">×</button>`;
+    } else {
+      const { label, color } = _invMeta(e);
+      iconHtml = `<span class="m-top-cat-dot" style="background:${color}"></span>`;
+      metaPill = `<span class="pill" style="background:${color}1a;color:${color};border-color:${color}40">${label}</span>`;
+      valColor = '#60b0ff'; prefix = '↗';
+      delBtn = `<button class="m-del-btn" onclick="deleteInvestimento(${e.id})">×</button>`;
+    }
+    return `<div class="m-exp-card">
+      <div class="m-neon-card-head">
+        ${iconHtml}
+        <div style="flex:1;min-width:0">
+          <div class="m-exp-desc">${e.desc}${e._tipo==='gasto'?_typeBadge(e):''}</div>
+          <div class="m-exp-meta">${metaPill}</div>
+        </div>
+        <div class="m-exp-valor" style="color:${valColor}">${prefix}${fmt(e.valor)}</div>
+      </div>
+      <div class="m-exp-foot">
+        <span class="m-exp-date">${fmtDate(e.data)}</span>
+        <div style="display:flex;gap:4px">${delBtn}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ── Renderizar tabela (desktop) e cards (mobile) ─────────────
+function renderExpenses() {
+  // Delega para renderExtrato que gerencia os tipos
+  renderExtrato();
 }
 
 function _renderDesktopTable(list) {

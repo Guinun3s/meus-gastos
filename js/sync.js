@@ -12,7 +12,8 @@ async function syncNow() {
   if (!_db || !_user) return;
   const payload = {
     expenses:  _cache.expenses,
-    incomes:   _cache.incomes  || {},
+    incomes:      _cache.incomes      || {},
+    investments:  _cache.investments  || {},
     goals:     _cache.goals    || [],
     budgets:   _cache.budgets,
     cards:     _cache.cards    || [],
@@ -38,10 +39,11 @@ function attachListener() {
     if (snap.exists && !_syncing) {
       const d = snap.data();
       _cache.expenses = d.expenses || {};
-      _cache.incomes  = d.incomes  || {};
-      _cache.budgets  = d.budgets  || {};
-      _cache.goals    = d.goals    || [];
-      _cache.cards    = d.cards    || [];
+      _cache.incomes      = d.incomes      || {};
+      _cache.investments  = d.investments  || {};
+      _cache.budgets      = d.budgets      || {};
+      _cache.goals        = d.goals        || [];
+      _cache.cards        = d.cards        || [];
       render();
     }
     setSyncStatus("ok");
@@ -56,10 +58,11 @@ async function loadUserData() {
     if (snap.exists) {
       const d = snap.data();
       _cache.expenses = d.expenses || {};
-      _cache.incomes  = d.incomes  || {};
-      _cache.budgets  = d.budgets  || {};
-      _cache.goals    = d.goals    || [];
-      _cache.cards    = d.cards    || [];
+      _cache.incomes      = d.incomes      || {};
+      _cache.investments  = d.investments  || {};
+      _cache.budgets      = d.budgets      || {};
+      _cache.goals        = d.goals        || [];
+      _cache.cards        = d.cards        || [];
     }
     setSyncStatus("ok");
   } catch {

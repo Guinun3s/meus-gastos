@@ -6,8 +6,8 @@ function renderSummary() {
   const list       = loadExp();
   const ct         = catTotals();
   const totalAll   = list.reduce((s, e) => s + e.valor, 0);
-  const invest     = ct['investimento'] || 0;
-  const gastos     = totalAll - invest;
+  const invest     = calcTotalInvestido(); // agora em _cache.investments
+  const gastos     = totalAll;             // expenses já não contêm investimentos
   const receita    = calcReceitaTotal();
   const saldoReal  = calcSaldoReal();
   const saldoBanco = calcSaldoBanco();
@@ -16,7 +16,8 @@ function renderSummary() {
   document.getElementById('monthLabel').textContent    = capitalize(mName());
   document.getElementById('totalReceita').textContent  = fmt(receita);
   document.getElementById('totalGasto').textContent    = fmt(gastos);
-  document.getElementById('nLanc').textContent         = list.length + ' lançamento' + (list.length !== 1 ? 's' : '');
+  const gastosCount = list.filter(e => e.cat !== 'investimento').length;
+  document.getElementById('nLanc').textContent = gastosCount + ' lançamento' + (gastosCount !== 1 ? 's' : '');
   document.getElementById('totalInvest').textContent   = fmt(invest);
 
   const sr = document.getElementById('saldoReal');

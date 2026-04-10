@@ -27,31 +27,33 @@ function saveCards(list) { _cache.cards = list; scheduleSync(); }
 // ── Cálculos de saldo ─────────────────────────────────────────
 function calcReceitaBanco()    { return loadInc().filter(i => i.tipo === "banco").reduce((s, i) => s + i.valor, 0); }
 function calcReceitaDinheiro() { return loadInc().filter(i => i.tipo === "dinheiro").reduce((s, i) => s + i.valor, 0); }
+
+// ── Investimentos (objeto independente, NÃO é gasto) ─────────
+function loadInv() { return (_cache.investments || {})[mKey()] || []; }
+function saveInv(list) {
+  if (!_cache.investments) _cache.investments = {};
+  _cache.investments[mKey()] = list;
+  scheduleSync();
+}
+function calcTotalInvestido() { return loadInv().reduce((s, e) => s + e.valor, 0); }
 function calcReceitaTotal()    { return calcReceitaBanco() + calcReceitaDinheiro(); }
 
 // Gastos no banco: exclui crédito (não saiu ainda) — inclui pagamentos de fatura (faturaCardId)
 function calcGastosBanco()    {
   return loadExp()
-    .filter(e => (BANK_PAYS.includes(e.pay) || e.faturaCardId) && e.cat !== 'investimento')
+    .filter(e => BANK_PAYS.includes(e.pay) || e.faturaCardId)
     .reduce((s, e) => s + e.valor, 0);
 }
 function calcGastosDinheiro() { return loadExp().filter(e => e.pay === "dinheiro").reduce((s, e) => s + e.valor, 0); }
 
 function calcSaldoBanco()    { return calcReceitaBanco()    - calcGastosBanco(); }
 function calcSaldoDinheiro() { return calcReceitaDinheiro() - calcGastosDinheiro(); }
-// Saldo real: exclui crédito (dívida futura) E investimentos (patrimônio, não gasto)
+// Saldo real: exclui crédito (dívida futura). Investimentos são objetos separados.
 function calcSaldoReal() {
   const gastos = loadExp()
-    .filter(e => e.pay !== 'credito' && e.cat !== 'investimento')
+    .filter(e => e.pay !== 'credito')
     .reduce((s, e) => s + e.valor, 0);
   return calcReceitaTotal() - gastos;
-}
-
-// Retorna total de gastos reais (sem investimentos e sem crédito ainda não pago)
-function calcGastosReais() {
-  return loadExp()
-    .filter(e => e.pay !== 'credito' && e.cat !== 'investimento')
-    .reduce((s, e) => s + e.valor, 0);
 }
 
 // ── Totais por categoria ──────────────────────────────────────
@@ -74,8 +76,8 @@ function getMonthlyHistory(numMonths = 6) {
     const incs = (_cache.incomes || {})[key] || [];
     const receita = incs.reduce((s, i) => s + i.valor, 0);
     const total   = exps.reduce((s, e) => s + e.valor, 0);
-    const invest  = exps.filter(e => e.cat === "investimento").reduce((s, e) => s + e.valor, 0);
-    const gastos  = total - invest;
+    const invest  = ((_cache.investments || {})[key] || []).reduce((s, e) => s + e.valor, 0);
+    const gastos  = total;
     const label   = fmtMonthShort(y, m);
 
     result.unshift({ key, label, total, gastos, invest, receita, month: m, year: y });

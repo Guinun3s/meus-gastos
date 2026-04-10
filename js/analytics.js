@@ -64,7 +64,7 @@ function calcResumoSemanal() {
 
   let semAtual = 0, semAnt = 0;
   meses.forEach(key => {
-    const exps = (_cache.expenses[key] || []).filter(e => e.pay !== 'credito');
+    const exps = (_cache.expenses[key] || []).filter(e => e.pay !== 'credito' && e.cat !== 'investimento');
     exps.forEach(e => {
       const d = new Date(e.data + 'T00:00:00');
       if (d >= inicioSem && d <= hoje) semAtual += e.valor;
@@ -91,7 +91,7 @@ function calcGastoPorDia() {
     const key = h.key;
     if (keysUsed.has(key)) return;
     keysUsed.add(key);
-    const exps = (_cache.expenses[key] || []).filter(e => e.pay !== 'credito');
+    const exps = (_cache.expenses[key] || []).filter(e => e.pay !== 'credito' && e.cat !== 'investimento');
     exps.forEach(e => {
       const d   = new Date(e.data + 'T00:00:00');
       let dow   = d.getDay(); // 0=dom
@@ -274,7 +274,7 @@ function calcSaldoProjetado() {
   const receita    = calcReceitaTotal();
   // Exclui investimentos — eles são transferência de patrimônio, não gasto
   const gastosAte  = loadExp()
-    .filter(e => e.cat !== 'investimento')
+    .filter(e => e.cat !== 'investimento') // safety filter for legacy data
     .reduce((s, e) => s + e.valor, 0);
 
   // Compromissos recorrentes com entradas futuras neste mês (excluindo investimentos)
