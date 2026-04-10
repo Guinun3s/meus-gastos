@@ -170,8 +170,8 @@
 
       <!-- Abas (desktop) -->
       <div class="tabs d-only">
-        <button class="tab active" onclick="switchTab('lancamentos', this)">Lançamentos</button>
-        <button class="tab"        onclick="switchTab('receitas', this)">Receitas</button>
+        <button class="tab active" onclick="switchTab('extrato', this)">Extrato</button>
+        <button class="tab"        onclick="switchTab('investimentos', this)">Investimentos</button>
         <button class="tab"        onclick="switchTab('graficos', this)">Gráficos</button>
         <button class="tab"        onclick="switchTab('historico', this)">Histórico</button>
         <button class="tab"        onclick="switchTab('orcamento', this)">Orçamento</button>
@@ -182,7 +182,7 @@
 
 
       <!-- ── PAINEL: LANÇAMENTOS ── -->
-      <div class="panel active" id="panel-lancamentos">
+      <div class="panel active" id="panel-extrato">
 
         <!-- Formulário (desktop) -->
         <div class="form-row d-only">
@@ -249,6 +249,13 @@
           <input type="text" id="filterSearchM" placeholder="Buscar lançamento..." oninput="renderExpenses()" />
         </div>
 
+        <!-- Toggle de tipo no extrato -->
+        <div class="extrato-type-bar d-only">
+          <button class="extrato-type-btn active" data-etype="gastos"    onclick="setExtratoType('gastos', this)">Gastos</button>
+          <button class="extrato-type-btn"        data-etype="receitas"  onclick="setExtratoType('receitas', this)">Receitas</button>
+          <button class="extrato-type-btn"        data-etype="todos"     onclick="setExtratoType('todos', this)">Todos</button>
+        </div>
+
         <!-- Filtros -->
         <div class="filter-row">
           <span class="fltr-label">Filtrar:</span>
@@ -283,52 +290,53 @@
 
         <!-- Cards (mobile) -->
         <div class="m-exp-list m-only" id="mExpenseList"></div>
-      </div><!-- /panel-lancamentos -->
+      </div><!-- /panel-extrato -->
 
 
-      <!-- ── PAINEL: RECEITAS ── -->
-      <div class="panel" id="panel-receitas">
-
-        <!-- Formulário (desktop) -->
+      <!-- ── PAINEL: INVESTIMENTOS ── -->
+      <div class="panel" id="panel-investimentos">
+        <!-- Formulário desktop -->
         <div class="form-row d-only">
           <div class="fld">
             <label class="flabel">Descrição</label>
-            <input class="finput" type="text" id="incDesc" placeholder="ex: Salário, Freelance..." />
+            <input class="finput" type="text" id="invDesc" placeholder="ex: CDB Nubank, MXRF11..." />
           </div>
           <div class="fld">
             <label class="flabel">Valor R$</label>
-            <input class="finput" type="number" id="incValor" placeholder="0,00" step="0.01" min="0" />
+            <input class="finput" type="number" id="invValor" placeholder="0,00" step="0.01" min="0" />
           </div>
           <div class="fld">
             <label class="flabel">Tipo</label>
-            <select class="fselect" id="incTipo">
-              <option value="banco">Banco</option>
-              <option value="dinheiro">Dinheiro</option>
+            <select class="fselect" id="invTipo">
+              <option value="acoes">Ações / FIIs</option>
+              <option value="rendafixa">Renda Fixa</option>
+              <option value="tesouro">Tesouro Direto</option>
+              <option value="cripto">Cripto</option>
+              <option value="poupanca">Poupança</option>
+              <option value="outros">Outros</option>
             </select>
           </div>
           <div class="fld">
             <label class="flabel">Data</label>
-            <input class="finput" type="date" id="incData" />
+            <input class="finput" type="date" id="invData" />
           </div>
-          <button class="btn-add" onclick="addIncome()">+ Add</button>
+          <button class="btn-add" onclick="addInvestimento()">+ Add</button>
         </div>
-
-        <!-- Tabela (desktop) -->
+        <!-- Tabela desktop -->
         <div class="table-wrap d-only">
           <table>
-            <thead>
-              <tr>
-                <th>Descrição</th><th>Tipo</th><th>Data</th>
-                <th class="r">Valor</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="incomeTbody"></tbody>
+            <thead><tr>
+              <th>Descrição</th><th>Tipo</th><th>Data</th>
+              <th class="r">Valor</th><th></th>
+            </tr></thead>
+            <tbody id="investTbody"></tbody>
           </table>
         </div>
+        <div id="investSummary" class="d-only" style="margin-bottom:12px"></div>
+        <!-- Cards mobile -->
+        <div class="m-exp-list m-only" id="mInvestList"></div>
+      </div><!-- /panel-investimentos -->
 
-        <!-- Cards (mobile) -->
-        <div class="m-exp-list m-only" id="mIncomeList"></div>
-      </div><!-- /panel-receitas -->
 
 
       <!-- ── PAINEL: GRÁFICOS ── -->
@@ -445,8 +453,8 @@
     <button class="nav-btn active" onclick="switchMobilePage('home', this)">
       <span class="nav-icon nav-svg" data-nav="home">⌂</span><span class="nav-label">Início</span>
     </button>
-    <button class="nav-btn" onclick="switchMobilePage('lancamentos', this)">
-      <span class="nav-icon nav-svg" data-nav="lancamentos">≡</span><span class="nav-label">Gastos</span>
+    <button class="nav-btn" onclick="switchMobilePage('extrato', this)">
+      <span class="nav-icon nav-svg" data-nav="lancamentos">≡</span><span class="nav-label">Extrato</span>
     </button>
     <!-- FAB central integrado na nav -->
     <button class="nav-btn nav-fab" onclick="openAddSheet()">
@@ -931,8 +939,8 @@
     </div>
     <!-- Telas secundárias -->
     <div class="menu-section-label">Telas</div>
-    <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('receitas', document.querySelector('.nav-btn'))">
-      <span class="menu-icon nav-svg" data-nav="receitas">↑</span> Receitas
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('investimentos', document.querySelector('.nav-btn'))">
+      <span class="menu-icon nav-svg" data-nav="investimentos">↗</span> Investimentos
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('historico', document.querySelector('.nav-btn'))">
       <span class="menu-icon nav-svg" data-nav="historico">⏱</span> Histórico
@@ -1031,6 +1039,7 @@
 <script src="js/notifications.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/commitments.js"></script>
+<script src="js/investimentos.js"></script>
 <script src="js/voice.js"></script>
 <script src="js/templates.js"></script>
 <script src="js/search.js"></script>
