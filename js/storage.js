@@ -75,9 +75,9 @@ function getMonthlyHistory(numMonths = 6) {
     const exps = _cache.expenses[key] || [];
     const incs = (_cache.incomes || {})[key] || [];
     const receita = incs.reduce((s, i) => s + i.valor, 0);
-    const total   = exps.reduce((s, e) => s + e.valor, 0);
+    const gastos  = exps.reduce((s, e) => s + e.valor, 0);
     const invest  = ((_cache.investments || {})[key] || []).reduce((s, e) => s + e.valor, 0);
-    const gastos  = total;
+    const total   = gastos + invest;
     const label   = fmtMonthShort(y, m);
 
     result.unshift({ key, label, total, gastos, invest, receita, month: m, year: y });
