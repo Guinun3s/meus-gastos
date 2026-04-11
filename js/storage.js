@@ -41,17 +41,17 @@ function calcReceitaTotal()    { return calcReceitaBanco() + calcReceitaDinheiro
 // Gastos no banco: exclui crédito (não saiu ainda) — inclui pagamentos de fatura (faturaCardId)
 function calcGastosBanco()    {
   return loadExp()
-    .filter(e => BANK_PAYS.includes(e.pay) || e.faturaCardId)
+    .filter(e => (BANK_PAYS.includes(e.pay) || e.faturaCardId) && e.cat !== 'investimento')
     .reduce((s, e) => s + e.valor, 0);
 }
 function calcGastosDinheiro() { return loadExp().filter(e => e.pay === "dinheiro").reduce((s, e) => s + e.valor, 0); }
 
 function calcSaldoBanco()    { return calcReceitaBanco()    - calcGastosBanco(); }
 function calcSaldoDinheiro() { return calcReceitaDinheiro() - calcGastosDinheiro(); }
-// Saldo real: exclui crédito (dívida futura). Investimentos são objetos separados.
+// Saldo real: exclui crédito E investimentos (migrados ou legados)
 function calcSaldoReal() {
   const gastos = loadExp()
-    .filter(e => e.pay !== 'credito')
+    .filter(e => e.pay !== 'credito' && e.cat !== 'investimento')
     .reduce((s, e) => s + e.valor, 0);
   return calcReceitaTotal() - gastos;
 }

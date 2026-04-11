@@ -5,9 +5,11 @@
 function renderSummary() {
   const list       = loadExp();
   const ct         = catTotals();
-  const totalAll   = list.reduce((s, e) => s + e.valor, 0);
-  const invest     = calcTotalInvestido(); // agora em _cache.investments
-  const gastos     = totalAll;             // expenses já não contêm investimentos
+  const invest     = calcTotalInvestido(); // em _cache.investments
+  // Exclui investimentos legados (cat='investimento') que ainda não foram migrados
+  const gastos     = list
+    .filter(e => e.cat !== 'investimento')
+    .reduce((s, e) => s + e.valor, 0);
   const receita    = calcReceitaTotal();
   const saldoReal  = calcSaldoReal();
   const saldoBanco = calcSaldoBanco();
