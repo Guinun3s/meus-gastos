@@ -10,6 +10,7 @@ function renderSummary() {
   const gastos     = list
     .filter(e => e.cat !== 'investimento')
     .reduce((s, e) => s + e.valor, 0);
+  const totalAll   = gastos; // alias para renderMobileExtras
   const receita    = calcReceitaTotal();
   const saldoReal  = calcSaldoReal();
   const saldoBanco = calcSaldoBanco();

@@ -25,7 +25,7 @@ function switchTab(name, btn) {
   else if (name === 'receitas')      renderIncomes();
   else if (panelName === 'investimentos') renderInvestimentos();
   else if (panelName === 'graficos') renderCharts();
-  else if (panelName === 'historico')renderHistory();
+  else if (panelName === 'historico')renderHistoryPanel();
   else if (panelName === 'orcamento')renderBudget();
   else if (panelName === 'metas')    renderGoals();
   else if (panelName === 'compromissos') renderCommitments();
@@ -84,7 +84,7 @@ function switchMobilePage(name, btn) {
   if (panelName === 'extrato')       renderExtrato();
   else if (panelName === 'investimentos') renderInvestimentos();
   else if (panelName === 'graficos') renderCharts();
-  else if (panelName === 'historico')renderHistory();
+  else if (panelName === 'historico')renderHistoryPanel();
   else if (panelName === 'orcamento')renderBudget();
   else if (panelName === 'metas')    renderGoals();
   else if (panelName === 'compromissos') renderCommitments();

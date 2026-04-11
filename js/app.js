@@ -4,8 +4,7 @@
 
 function render() {
   renderSummary();
-  renderExpenses();
-  renderIncomes();
+  renderExpenses();      // inclui extrato (gastos+receitas+investimentos)
   renderSidebar();
   renderBudget();
   checkBudgetAlerts();
