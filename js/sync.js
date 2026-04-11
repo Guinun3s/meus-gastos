@@ -44,6 +44,7 @@ function attachListener() {
       _cache.budgets      = d.budgets      || {};
       _cache.goals        = d.goals        || [];
       _cache.cards        = d.cards        || [];
+      if (typeof migrateInvestimentos === 'function') migrateInvestimentos();
       render();
     }
     setSyncStatus("ok");
