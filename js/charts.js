@@ -250,7 +250,7 @@ function _renderHistoryTable(data, tableId = 'historyTable') {
       </thead>
       <tbody>
         ${data.map(d => {
-          const saldoReal = d.receita - d.total - d.invest;
+          const saldoReal = d.receita - d.total;
           const current   = isCurrentMonth(d);
           return `<tr class="${current ? 'hist-current' : ''}">
             <td>${d.label}${current ? ' <span class="hist-badge">atual</span>' : ''}</td>
