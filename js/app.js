@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const t = today();
-  ['dataGasto', 'incData'].forEach(id => {
+  ['dataGasto', 'incData', 'extInvData', 'invData'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = t;
   });

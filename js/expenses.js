@@ -613,6 +613,35 @@ function _typeBadge(e) {
 }
 
 
+// ── Toggle de formulário desktop (gasto/receita/investimento) ────
+function setDesktopFormType(type, btn) {
+  // Atualiza botões
+  document.querySelectorAll('[data-ftype]').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Mostra/oculta formulários
+  const fg = document.getElementById('deskFormGasto');
+  const fr = document.getElementById('deskFormReceita');
+  const fi = document.getElementById('deskFormInvest');
+  if (fg) fg.style.display = type === 'gasto'        ? '' : 'none';
+  if (fr) fr.style.display = type === 'receita'      ? '' : 'none';
+  if (fi) fi.style.display = type === 'investimento' ? '' : 'none';
+}
+
+// ── Filtro de tipo do extrato ────────────────────────────────────
+let _extratoType = 'todos'; // 'gastos' | 'receitas' | 'investimentos' | 'todos'
+
+function setExtratoType(type, btn) {
+  _extratoType = type;
+  // Atualiza botões ativos (desktop)
+  document.querySelectorAll('.extrato-type-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Atualiza botões ativos (mobile)
+  document.querySelectorAll('.m-extrato-type-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.etype === type)
+  );
+  renderExtrato();
+}
+
 // ── Extrato unificado: gastos + receitas + investimentos ────────
 function renderExtrato() {
   const fc  = document.getElementById('filterCat')?.value  || '';
@@ -621,19 +650,28 @@ function renderExtrato() {
   const fsM = document.getElementById('filterSearchM')?.value || '';
   const fs  = (isMobile() ? fsM : fsD).toLowerCase();
 
+  const showGastos = _extratoType === 'todos' || _extratoType === 'gastos';
+  const showReceitas = _extratoType === 'todos' || _extratoType === 'receitas';
+  const showInvest = _extratoType === 'todos' || _extratoType === 'investimentos';
+
   // Monta lista unificada ordenada por data
-  let gastos = loadExp().filter(e => e.cat !== 'investimento'); // safety
-  if (fc) gastos = gastos.filter(e => e.cat === fc);
-  if (fp) gastos = gastos.filter(e => e.pay === fp);
-  if (fs) gastos = gastos.filter(e => e.desc?.toLowerCase().includes(fs));
+  let gastos = [];
+  if (showGastos) {
+    gastos = loadExp().filter(e => e.cat !== 'investimento'); // safety
+    if (fc) gastos = gastos.filter(e => e.cat === fc);
+    if (fp) gastos = gastos.filter(e => e.pay === fp);
+    if (fs) gastos = gastos.filter(e => e.desc?.toLowerCase().includes(fs));
+  }
 
-  const receitas = fs
-    ? loadInc().filter(e => e.desc?.toLowerCase().includes(fs))
-    : loadInc();
+  let receitas = [];
+  if (showReceitas) {
+    receitas = fs ? loadInc().filter(e => e.desc?.toLowerCase().includes(fs)) : loadInc();
+  }
 
-  const investimentos = fs
-    ? loadInv().filter(e => e.desc?.toLowerCase().includes(fs))
-    : loadInv();
+  let investimentos = [];
+  if (showInvest) {
+    investimentos = fs ? loadInv().filter(e => e.desc?.toLowerCase().includes(fs)) : loadInv();
+  }
 
   // Unifica e ordena por data desc
   const unified = [
@@ -678,8 +716,10 @@ function _renderExtratoDesktop(unified) {
       ? `<button class="td-edit" onclick="openEditExpense(${e.id})" title="Editar">✎</button>
          <button class="td-del" onclick="deleteExpense(${e.id})">×</button>`
       : e._tipo === 'receita'
-      ? `<button class="td-del" onclick="deleteIncome(${e.id})">×</button>`
-      : `<button class="td-del" onclick="deleteInvestimento(${e.id})">×</button>`;
+      ? `<button class="td-edit" onclick="openEditIncome(${e.id})" title="Editar">✎</button>
+         <button class="td-del" onclick="deleteIncome(${e.id})">×</button>`
+      : `<button class="td-edit" onclick="openEditInvestimento(${e.id})" title="Editar">✎</button>
+         <button class="td-del" onclick="deleteInvestimento(${e.id})">×</button>`;
     return `<tr>
       <td>${e.desc}${e._tipo === 'gasto' ? _typeBadge(e) : ''}</td>
       <td>${catCell}</td><td>${payCell}</td>
@@ -719,13 +759,15 @@ function _renderExtratoMobile(unified) {
       iconHtml = `<span class="m-top-cat-dot" style="background:${c}"></span>`;
       metaPill = `<span class="pill" style="background:${c}1a;color:${c};border-color:${c}40">Receita · ${e.tipo==='banco'?'Banco':'Dinheiro'}</span>`;
       valColor = 'var(--accent)'; prefix = '+';
-      delBtn = `<button class="m-del-btn" onclick="deleteIncome(${e.id})">×</button>`;
+      delBtn = `<button class="m-edit-btn" onclick="openEditIncome(${e.id})">✎</button>
+                <button class="m-del-btn" onclick="deleteIncome(${e.id})">×</button>`;
     } else {
       const { label, color } = _invMeta(e);
       iconHtml = `<span class="m-top-cat-dot" style="background:${color}"></span>`;
       metaPill = `<span class="pill" style="background:${color}1a;color:${color};border-color:${color}40">${label}</span>`;
       valColor = '#60b0ff'; prefix = '↗';
-      delBtn = `<button class="m-del-btn" onclick="deleteInvestimento(${e.id})">×</button>`;
+      delBtn = `<button class="m-edit-btn" onclick="openEditInvestimento(${e.id})">✎</button>
+                <button class="m-del-btn" onclick="deleteInvestimento(${e.id})">×</button>`;
     }
     return `<div class="m-exp-card">
       <div class="m-neon-card-head">

@@ -43,6 +43,28 @@ function addInvestimento() {
   toast('Investimento adicionado!');
 }
 
+// ── Adicionar a partir do extrato (desktop) ──────────────
+function addInvestimentoFromExtrato() {
+  const desc  = (document.getElementById('extInvDesc')?.value || '').trim();
+  const valor = parseFloat(document.getElementById('extInvValor')?.value || '');
+  const tipo  = document.getElementById('extInvTipo')?.value || 'outros';
+  const data  = document.getElementById('extInvData')?.value || today();
+
+  if (!desc || !valor || valor <= 0) { toast('Preencha descrição e valor.'); return; }
+
+  const inv = { id: Date.now(), desc, valor, data, tipo };
+  const list = loadInv();
+  list.unshift(inv);
+  saveInv(list);
+
+  if (document.getElementById('extInvDesc'))  document.getElementById('extInvDesc').value  = '';
+  if (document.getElementById('extInvValor')) document.getElementById('extInvValor').value = '';
+  if (document.getElementById('extInvData'))  document.getElementById('extInvData').value  = today();
+
+  render();
+  toast('Investimento adicionado!');
+}
+
 // ── Adicionar (mobile) ────────────────────────────────────
 function saveInvestimentoMobile() {
   const desc  = (document.getElementById('mDesc')?.value || '').trim();
@@ -60,6 +82,65 @@ function saveInvestimentoMobile() {
   closeSheet('sheetAdd');
   render();
   toast('Investimento adicionado!');
+}
+
+// ── Editar ────────────────────────────────────────────────
+let _editingInvestId = null;
+
+function openEditInvestimento(id) {
+  const inv = loadInv().find(e => e.id === id);
+  if (!inv) return;
+  _editingInvestId = id;
+
+  if (isMobile()) {
+    document.getElementById('mDesc').value      = inv.desc;
+    document.getElementById('mValor').value     = inv.valor;
+    document.getElementById('mDataGasto').value = inv.data;
+    // Seleciona modo investimento no sheet unificado
+    setAddSheetMode('investimento');
+    const tipoSel = document.getElementById('mInvTipoUnified') || document.getElementById('mInvTipo');
+    if (tipoSel) tipoSel.value = inv.tipo || 'outros';
+    _setSheetAddMode('edit');
+    document.getElementById('sheetAddTitle').textContent = 'Editar investimento';
+    document.getElementById('sheetAddBtn').textContent   = 'Salvar alterações';
+    document.getElementById('sheetAddBtn').onclick       = saveEditInvestimentoMobile;
+    openSheet('sheetAdd');
+  } else {
+    document.getElementById('editInvDesc').value  = inv.desc;
+    document.getElementById('editInvValor').value = inv.valor;
+    document.getElementById('editInvData').value  = inv.data;
+    document.getElementById('editInvTipo').value  = inv.tipo || 'outros';
+    openModal('modalEditInvest');
+  }
+}
+
+function saveEditInvestimentoMobile() {
+  const desc  = (document.getElementById('mDesc')?.value || '').trim();
+  const valor = parseFloat(document.getElementById('mValor')?.value || '');
+  const data  = document.getElementById('mDataGasto')?.value || today();
+  const tipo  = (document.getElementById('mInvTipoUnified') || document.getElementById('mInvTipo'))?.value || 'outros';
+  _updateInvestimento(_editingInvestId, desc, valor, tipo, data);
+  closeSheet('sheetAdd');
+}
+
+function saveEditInvestimento() {
+  const desc  = (document.getElementById('editInvDesc')?.value || '').trim();
+  const valor = parseFloat(document.getElementById('editInvValor')?.value || '');
+  const tipo  = document.getElementById('editInvTipo')?.value || 'outros';
+  const data  = document.getElementById('editInvData')?.value || today();
+  _updateInvestimento(_editingInvestId, desc, valor, tipo, data);
+  closeModal('modalEditInvest');
+}
+
+function _updateInvestimento(id, desc, valor, tipo, data) {
+  if (!desc || isNaN(valor) || valor <= 0) { toast('Preencha descrição e valor.'); return; }
+  const list = loadInv()
+    .map(e => e.id === id ? { ...e, desc, valor, tipo, data } : e)
+    .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  saveInv(list);
+  _editingInvestId = null;
+  render();
+  toast('Investimento atualizado!');
 }
 
 // ── Deletar ───────────────────────────────────────────────
@@ -107,7 +188,10 @@ function _renderInvestTable() {
         <span class="pdot" style="background:${color}"></span>${label}</span></td>
       <td class="td-date">${fmtDate(e.data)}</td>
       <td class="td-r" style="color:var(--accent)">${fmt(e.valor)}</td>
-      <td><button class="td-del" onclick="deleteInvestimento(${e.id})">×</button></td>
+      <td>
+        <button class="td-edit" onclick="openEditInvestimento(${e.id})" title="Editar">✎</button>
+        <button class="td-del" onclick="deleteInvestimento(${e.id})">×</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -135,7 +219,10 @@ function _renderInvestMobile() {
       </div>
       <div class="m-exp-foot">
         <span class="m-exp-date">${fmtDate(e.data)}</span>
-        <button class="m-del-btn" onclick="deleteInvestimento(${e.id})">×</button>
+        <div style="display:flex;gap:4px">
+          <button class="m-edit-btn" onclick="openEditInvestimento(${e.id})">✎</button>
+          <button class="m-del-btn" onclick="deleteInvestimento(${e.id})">×</button>
+        </div>
       </div>
     </div>`;
   }).join('');

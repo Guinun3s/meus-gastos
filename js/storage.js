@@ -48,12 +48,13 @@ function calcGastosDinheiro() { return loadExp().filter(e => e.pay === "dinheiro
 
 function calcSaldoBanco()    { return calcReceitaBanco()    - calcGastosBanco(); }
 function calcSaldoDinheiro() { return calcReceitaDinheiro() - calcGastosDinheiro(); }
-// Saldo real: exclui crédito E investimentos (migrados ou legados)
+// Saldo real: receita - gastos - investimentos
 function calcSaldoReal() {
   const gastos = loadExp()
     .filter(e => e.pay !== 'credito' && e.cat !== 'investimento')
     .reduce((s, e) => s + e.valor, 0);
-  return calcReceitaTotal() - gastos;
+  const invest = calcTotalInvestido();
+  return calcReceitaTotal() - gastos - invest;
 }
 
 // ── Totais por categoria ──────────────────────────────────────

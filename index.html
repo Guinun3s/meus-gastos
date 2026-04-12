@@ -184,64 +184,129 @@
       <!-- ── PAINEL: LANÇAMENTOS ── -->
       <div class="panel active" id="panel-extrato">
 
-        <!-- Formulário (desktop) -->
-        <div class="form-row d-only">
-          <div class="fld">
-            <label class="flabel">Descrição</label>
-            <input class="finput" type="text" id="desc" placeholder="ex: Mercado Extra" />
-          </div>
-          <div class="fld">
-            <label class="flabel">Valor R$</label>
-            <input class="finput" type="number" id="valor" placeholder="0,00" step="0.01" min="0" />
-          </div>
-          <div class="fld">
-            <label class="flabel">Categoria</label>
-            <select class="fselect" id="catSelect" onchange="onCatChange(this)"></select>
-          </div>
-          <div class="fld">
-            <label class="flabel">Pagamento</label>
-            <select class="fselect" id="paySelect" onchange="onPayChange(this)">
-              <option value="dinheiro">Dinheiro</option>
-              <option value="debito">Cartão Débito</option>
-              <option value="credito">Cartão Crédito</option>
-              <option value="pix">Pix</option>
-              <option value="boleto">Boleto</option>
-              <option value="transferencia">Transferência</option>
-            </select>
-          </div>
-          <div class="fld" id="cardWrap" style="display:none">
-            <label class="flabel">Cartão</label>
-            <select class="fselect" id="cardSelect"></select>
-          </div>
-          <div class="fld">
-            <label class="flabel">Data</label>
-            <input class="finput" type="date" id="dataGasto" />
-          </div>
-          <button class="btn-add" onclick="addExpense()">+ Add</button>
+        <!-- Toggle tipo de lançamento (desktop) -->
+        <div class="extrato-type-bar d-only" style="margin-bottom:10px">
+          <button class="extrato-type-btn active" data-ftype="gasto"        onclick="setDesktopFormType('gasto', this)">+ Gasto</button>
+          <button class="extrato-type-btn"        data-ftype="receita"      onclick="setDesktopFormType('receita', this)">+ Receita</button>
+          <button class="extrato-type-btn"        data-ftype="investimento" onclick="setDesktopFormType('investimento', this)">+ Investimento</button>
         </div>
 
-        <!-- Tipo (recorrente/parcelado) — desktop -->
-        <div class="d-only" style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
-          <div class="fld" style="max-width:200px">
-            <label class="flabel">Tipo de lançamento</label>
-            <select class="fselect" id="expType" onchange="onExpTypeChange(this)">
-              <option value="normal">Normal</option>
-              <option value="recorrente">🔄 Recorrente</option>
-              <option value="parcelado">📦 Parcelado</option>
-            </select>
+        <!-- Formulário GASTO (desktop) -->
+        <div id="deskFormGasto">
+          <div class="form-row d-only">
+            <div class="fld">
+              <label class="flabel">Descrição</label>
+              <input class="finput" type="text" id="desc" placeholder="ex: Mercado Extra" />
+            </div>
+            <div class="fld">
+              <label class="flabel">Valor R$</label>
+              <input class="finput" type="number" id="valor" placeholder="0,00" step="0.01" min="0" />
+            </div>
+            <div class="fld">
+              <label class="flabel">Categoria</label>
+              <select class="fselect" id="catSelect" onchange="onCatChange(this)"></select>
+            </div>
+            <div class="fld">
+              <label class="flabel">Pagamento</label>
+              <select class="fselect" id="paySelect" onchange="onPayChange(this)">
+                <option value="dinheiro">Dinheiro</option>
+                <option value="debito">Cartão Débito</option>
+                <option value="credito">Cartão Crédito</option>
+                <option value="pix">Pix</option>
+                <option value="boleto">Boleto</option>
+                <option value="transferencia">Transferência</option>
+              </select>
+            </div>
+            <div class="fld" id="cardWrap" style="display:none">
+              <label class="flabel">Cartão</label>
+              <select class="fselect" id="cardSelect"></select>
+            </div>
+            <div class="fld">
+              <label class="flabel">Data</label>
+              <input class="finput" type="date" id="dataGasto" />
+            </div>
+            <button class="btn-add" onclick="addExpense()">+ Add</button>
           </div>
-          <div class="exp-type-extra" id="expTypeExtra">
-            <span class="flabel" id="expTypeLabel">Repetir por</span>
-            <input class="finput" type="number" id="expTypeQty" value="12" min="1" max="60" style="width:64px"
-              oninput="_updateInstallPreview(true)" />
-            <span class="exp-type-preview" id="expTypePreview">meses</span>
+
+          <!-- Tipo (recorrente/parcelado) — desktop -->
+          <div class="d-only" style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+            <div class="fld" style="max-width:200px">
+              <label class="flabel">Tipo de lançamento</label>
+              <select class="fselect" id="expType" onchange="onExpTypeChange(this)">
+                <option value="normal">Normal</option>
+                <option value="recorrente">🔄 Recorrente</option>
+                <option value="parcelado">📦 Parcelado</option>
+              </select>
+            </div>
+            <div class="exp-type-extra" id="expTypeExtra">
+              <span class="flabel" id="expTypeLabel">Repetir por</span>
+              <input class="finput" type="number" id="expTypeQty" value="12" min="1" max="60" style="width:64px"
+                oninput="_updateInstallPreview(true)" />
+              <span class="exp-type-preview" id="expTypePreview">meses</span>
+            </div>
+          </div>
+
+          <!-- Seletor de meta (desktop) -->
+          <div class="d-only goal-link-row" id="goalLinkWrap" style="display:none">
+            <span class="flabel" style="white-space:nowrap">🎯 Qual meta?</span>
+            <select class="fselect" id="goalLink" onchange="onGoalLinkChange(this)"></select>
           </div>
         </div>
 
-        <!-- Seletor de meta (desktop) -->
-        <div class="d-only goal-link-row" id="goalLinkWrap" style="display:none">
-          <span class="flabel" style="white-space:nowrap">🎯 Qual meta?</span>
-          <select class="fselect" id="goalLink" onchange="onGoalLinkChange(this)"></select>
+        <!-- Formulário RECEITA (desktop) -->
+        <div id="deskFormReceita" class="d-only" style="display:none">
+          <div class="form-row">
+            <div class="fld">
+              <label class="flabel">Descrição</label>
+              <input class="finput" type="text" id="incDesc" placeholder="ex: Salário" />
+            </div>
+            <div class="fld">
+              <label class="flabel">Valor R$</label>
+              <input class="finput" type="number" id="incValor" placeholder="0,00" step="0.01" min="0" />
+            </div>
+            <div class="fld">
+              <label class="flabel">Tipo</label>
+              <select class="fselect" id="incTipo">
+                <option value="banco">Banco</option>
+                <option value="dinheiro">Dinheiro</option>
+              </select>
+            </div>
+            <div class="fld">
+              <label class="flabel">Data</label>
+              <input class="finput" type="date" id="incData" />
+            </div>
+            <button class="btn-add" onclick="addIncome()">+ Add</button>
+          </div>
+        </div>
+
+        <!-- Formulário INVESTIMENTO (desktop - extrato) -->
+        <div id="deskFormInvest" class="d-only" style="display:none">
+          <div class="form-row">
+            <div class="fld">
+              <label class="flabel">Descrição</label>
+              <input class="finput" type="text" id="extInvDesc" placeholder="ex: Tesouro Selic" />
+            </div>
+            <div class="fld">
+              <label class="flabel">Valor R$</label>
+              <input class="finput" type="number" id="extInvValor" placeholder="0,00" step="0.01" min="0" />
+            </div>
+            <div class="fld">
+              <label class="flabel">Tipo</label>
+              <select class="fselect" id="extInvTipo">
+                <option value="acoes">Ações / FIIs</option>
+                <option value="rendafixa">Renda Fixa</option>
+                <option value="tesouro">Tesouro Direto</option>
+                <option value="cripto">Cripto</option>
+                <option value="poupanca">Poupança</option>
+                <option value="outros">Outros</option>
+              </select>
+            </div>
+            <div class="fld">
+              <label class="flabel">Data</label>
+              <input class="finput" type="date" id="extInvData" />
+            </div>
+            <button class="btn-add" onclick="addInvestimentoFromExtrato()">+ Add</button>
+          </div>
         </div>
 
         <!-- Busca (mobile) -->
@@ -249,11 +314,20 @@
           <input type="text" id="filterSearchM" placeholder="Buscar lançamento..." oninput="renderExpenses()" />
         </div>
 
-        <!-- Toggle de tipo no extrato -->
+        <!-- Toggle de tipo no extrato (mobile) -->
+        <div class="extrato-type-bar m-only">
+          <button class="m-extrato-type-btn active" data-etype="todos"          onclick="setExtratoType('todos', this)">Todos</button>
+          <button class="m-extrato-type-btn"        data-etype="gastos"         onclick="setExtratoType('gastos', this)">Gastos</button>
+          <button class="m-extrato-type-btn"        data-etype="receitas"       onclick="setExtratoType('receitas', this)">Receitas</button>
+          <button class="m-extrato-type-btn"        data-etype="investimentos"  onclick="setExtratoType('investimentos', this)">Investimentos</button>
+        </div>
+
+        <!-- Toggle de tipo no extrato (desktop) -->
         <div class="extrato-type-bar d-only">
-          <button class="extrato-type-btn active" data-etype="gastos"    onclick="setExtratoType('gastos', this)">Gastos</button>
-          <button class="extrato-type-btn"        data-etype="receitas"  onclick="setExtratoType('receitas', this)">Receitas</button>
-          <button class="extrato-type-btn"        data-etype="todos"     onclick="setExtratoType('todos', this)">Todos</button>
+          <button class="extrato-type-btn active" data-etype="todos"           onclick="setExtratoType('todos', this)">Todos</button>
+          <button class="extrato-type-btn"        data-etype="gastos"          onclick="setExtratoType('gastos', this)">Gastos</button>
+          <button class="extrato-type-btn"        data-etype="receitas"        onclick="setExtratoType('receitas', this)">Receitas</button>
+          <button class="extrato-type-btn"        data-etype="investimentos"   onclick="setExtratoType('investimentos', this)">Investimentos</button>
         </div>
 
         <!-- Filtros -->
@@ -565,6 +639,42 @@
     <div class="modal-actions">
       <button class="btn-s" onclick="closeModal('modalEditIncome')">Cancelar</button>
       <button class="btn-p" onclick="saveEditIncome()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: editar investimento (desktop) -->
+<div class="modal-bg d-only" id="modalEditInvest">
+  <div class="modal">
+    <h3>✎ Editar investimento</h3>
+    <div class="modal-field">
+      <label class="modal-label">Descrição</label>
+      <input class="finput" type="text" id="editInvDesc" placeholder="ex: Tesouro Selic" style="width:100%" />
+    </div>
+    <div class="modal-2col">
+      <div class="modal-field">
+        <label class="modal-label">Valor R$</label>
+        <input class="finput" type="number" id="editInvValor" placeholder="0,00" step="0.01" min="0" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Data</label>
+        <input class="finput" type="date" id="editInvData" />
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Tipo</label>
+      <select class="fselect" id="editInvTipo">
+        <option value="acoes">Ações / FIIs</option>
+        <option value="rendafixa">Renda Fixa</option>
+        <option value="tesouro">Tesouro Direto</option>
+        <option value="cripto">Cripto</option>
+        <option value="poupanca">Poupança</option>
+        <option value="outros">Outros</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-s" onclick="closeModal('modalEditInvest')">Cancelar</button>
+      <button class="btn-p" onclick="saveEditInvestimento()">Salvar alterações</button>
     </div>
   </div>
 </div>
