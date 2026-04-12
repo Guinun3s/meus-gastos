@@ -48,18 +48,46 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
   if (!el) return;
 
   let html = '';
+  const invest = calcTotalInvestido();
 
-  // Barra de progresso do mês
+  // Saldo disponível — Banco e Dinheiro
+  html += `<div class="m-progress-card">
+    <div class="m-progress-row" style="margin-bottom:6px">
+      <span class="m-progress-label">Saldo disponível</span>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div style="flex:1;display:flex;align-items:center;gap:6px">
+        ${uiIcon('card','var(--text3)')}
+        <div>
+          <div style="font-size:10px;color:var(--text3)">Banco</div>
+          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:${saldoBanco >= 0 ? 'var(--accent)' : 'var(--red)'}">${(saldoBanco < 0 ? '−' : '') + fmt(Math.abs(saldoBanco))}</div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px">
+        <span style="font-size:16px">💵</span>
+        <div>
+          <div style="font-size:10px;color:var(--text3)">Dinheiro</div>
+          <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:${saldoDin >= 0 ? 'var(--accent)' : 'var(--red)'}">${(saldoDin < 0 ? '−' : '') + fmt(Math.abs(saldoDin))}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Barra de progresso do mês (gastos + investimentos vs receita)
   if (receita > 0) {
-    // gastos reais = total excluindo investimentos
     const gastosReais = total - (ct['investimento'] || 0);
-    const usedPct = Math.min(100, Math.round(gastosReais / receita * 100));
-    const saldo   = receita - gastosReais;
-    const barColor = gastosReais > receita ? 'var(--red)' : 'var(--accent)';
+    const totalUsado  = gastosReais + invest;
+    const saldo       = receita - totalUsado;
+    const usedPct     = Math.min(100, Math.round(totalUsado / receita * 100));
+    const barColor    = totalUsado > receita ? 'var(--red)' : 'var(--accent)';
+    const investLabel = invest > 0 ? ` + ${fmt(invest)} investido` : '';
     html += `<div class="m-progress-card">
       <div class="m-progress-row">
-        <span class="m-progress-label">Gastos do mês</span>
+        <span class="m-progress-label">Uso da receita</span>
         <span class="m-progress-pct" style="color:${barColor}">${usedPct}%</span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">
+        ${fmt(gastosReais)} em gastos${investLabel}
       </div>
       <div class="m-progress-bar-bg">
         <div class="m-progress-bar-fill" style="width:${usedPct}%;background:${barColor}"></div>
@@ -118,20 +146,20 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
   }
 
   // Slot para o resumo semanal
-  html += `<div id="projHome"></div><div id="resumoSemHome"></div>`;
+  html += `<div id="resumoSemHome"></div>`;
 
   el.innerHTML = html;
 
   // Renderiza resumo semanal dentro do mHomeExtras após setar innerHTML
   if (typeof renderResumoSemanal === 'function') renderResumoSemanal('resumoSemHome');
-  // Saldo projetado
-  if (typeof renderSaldoProjetado === 'function') renderSaldoProjetado('projHome');
 }
 
 function renderSidebar() {
   const ct         = catTotals();
   const grand      = Object.values(ct).reduce((s, v) => s + v, 0);
-  const total      = loadExp().reduce((s, e) => s + e.valor, 0);
+  const gastos     = loadExp().filter(e => e.cat !== 'investimento').reduce((s, e) => s + e.valor, 0);
+  const invest     = calcTotalInvestido();
+  const totalUsado = gastos + invest; // tudo que sai da receita
   const receita    = calcReceitaTotal();
   const saldoBanco = calcSaldoBanco();
   const saldoDin   = calcSaldoDinheiro();
@@ -215,16 +243,18 @@ function renderSidebar() {
 
   const ss = document.getElementById('sidebarSit');
   if (ss) {
+    const usedPct = receita > 0 ? Math.min(100, Math.round(totalUsado / receita * 100)) : 0;
+    const investLabel = invest > 0 ? ` + ${fmt(invest)} investido` : '';
     ss.innerHTML = receita > 0
       ? `<div>
           <div class="s-label">situação</div>
           <div style="font-size:11px;color:var(--text2);margin-bottom:6px">
-            Gasto: ${fmt(total)} / ${fmt(receita)}
+            Gasto: ${fmt(gastos)}${investLabel} / ${fmt(receita)}
           </div>
           <div class="sbar-bg">
             <div class="sbar-fill"
-              style="width:${Math.min(100, Math.round(total / receita * 100))}%;
-                     background:${total > receita ? 'var(--red)' : 'var(--accent)'}">
+              style="width:${usedPct}%;
+                     background:${totalUsado > receita ? 'var(--red)' : 'var(--accent)'}">
             </div>
           </div>
           <div style="font-size:11px;margin-top:5px;color:${saldo >= 0 ? 'var(--accent)' : 'var(--red)'}">
