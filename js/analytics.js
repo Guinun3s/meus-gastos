@@ -272,6 +272,7 @@ function calcSaldoProjetado() {
   if (mesAtual !== today.getMonth() || anoAtual !== today.getFullYear()) return null;
 
   const receita    = calcReceitaTotal();
+  const invest     = calcTotalInvestido(); // investimentos do mês
   // Exclui investimentos — eles são transferência de patrimônio, não gasto
   const gastosAte  = loadExp()
     .filter(e => e.cat !== 'investimento') // safety filter for legacy data
@@ -299,8 +300,9 @@ function calcSaldoProjetado() {
   const ritmo = diasPassados > 0 ? gastosAte / diasPassados : 0;
   const gastoVariavelProjetado = ritmo * diasRestantes;
 
-  const projetado = receita - gastosAte - futurosRecorrentes - gastoVariavelProjetado;
-  const totalProjetado = gastosAte + futurosRecorrentes + gastoVariavelProjetado;
+  // Saldo projetado: receita - gastos - investimentos - futuros - projeção variável
+  const projetado = receita - invest - gastosAte - futurosRecorrentes - gastoVariavelProjetado;
+  const totalProjetado = gastosAte + invest + futurosRecorrentes + gastoVariavelProjetado;
 
   return {
     receita,
