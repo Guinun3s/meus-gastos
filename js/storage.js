@@ -46,7 +46,7 @@ function calcGastosBanco()    {
 }
 function calcGastosDinheiro() { return loadExp().filter(e => e.pay === "dinheiro").reduce((s, e) => s + e.valor, 0); }
 
-function calcSaldoBanco()    { return calcReceitaBanco()    - calcGastosBanco(); }
+function calcSaldoBanco()    { return calcReceitaBanco()    - calcGastosBanco() - calcTotalInvestido(); }
 function calcSaldoDinheiro() { return calcReceitaDinheiro() - calcGastosDinheiro(); }
 // Saldo real: receita - gastos - investimentos
 function calcSaldoReal() {
