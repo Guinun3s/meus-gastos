@@ -140,7 +140,7 @@ body {
 .brand b { color: var(--accent); font-weight: 500; }
 
 .month-nav { display: flex; align-items: center; }
-@media (max-width: 767px) { .month-nav { position: absolute; left: 50%; transform: translateX(-50%); } }
+@media (max-width: 767px) { .month-nav { position: absolute; left: 43%; transform: translateX(-50%); } }
 
 .mnbtn {
   background: none; border: 1px solid var(--line2); color: var(--text2);
@@ -152,7 +152,7 @@ body {
 .mnbtn:hover, .mnbtn:active { background: var(--bg3); color: var(--text); }
 
 .mlabel {
-  font-size: 12px; padding: 5px 18px; height: 32px; display: flex; align-items: center;
+  font-size: 12px; padding: 5px; height: 32px; display: flex; align-items: center;
   border: 1px solid var(--line2); border-left: none; border-right: none;
   min-width: 155px; justify-content: center; background: var(--bg2);
 }
