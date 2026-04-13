@@ -1335,6 +1335,9 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
   font-family: 'Nunito', sans-serif;
   font-weight: 600;
   transition: border-color .15s, box-shadow .15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2352525a' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); 
+  background-repeat: no-repeat; 
+  background-position: right 10px center;
 }
 [data-theme="neon"] .finput:focus,
 [data-theme="neon"] .fselect:focus,
