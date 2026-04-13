@@ -35,6 +35,11 @@
   --sans:  'IBM Plex Sans', sans-serif;
   --nav-h: 64px;
   --top-h: 52px;
+  /* Aliases usados por vários componentes (neon os redefine) */
+  --card:   var(--bg2);
+  --border: var(--line);
+  --hover:  var(--bg3);
+  --text1:  var(--text);
 }
 
 html { font-size: 14px; overscroll-behavior: none; }
@@ -1090,32 +1095,7 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
 .prev-label { font-size: 11px; color: var(--text3); }
 .prev-val   { font-size: 13px; font-family: var(--mono); font-weight: 500; }
 
-/* ════════════════════════════════════════════════
-   RESUMO SEMANAL
-════════════════════════════════════════════════ */
-
-.sem-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
-}
-
-.sem-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 5px;
-}
-
-.sem-label { font-size: 11px; color: var(--text3); }
-.sem-val   { font-size: 13px; font-family: var(--mono); font-weight: 500; }
-.sem-diff  { font-size: 11px; margin-top: 6px; font-family: var(--mono); }
-
-.budget-alert-pill {
-  justify-content: space-between;
-}
+/* (sem-card/sem-row movidos para seção única abaixo) */
 .alert-dismiss-btn {
   flex-shrink: 0;
   background: transparent;
@@ -1176,39 +1156,7 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
 /* ════════════════════════════════════════════════
    NOTIFICAÇÕES — toggle + modal
 ════════════════════════════════════════════════ */
-
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-  flex-shrink: 0;
-}
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider {
-  position: absolute;
-  inset: 0;
-  background: var(--border);
-  border-radius: 24px;
-  cursor: pointer;
-  transition: background .2s;
-}
-.toggle-slider::before {
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  left: 3px;
-  top: 3px;
-  border-radius: 50%;
-  background: var(--text3);
-  transition: transform .2s, background .2s;
-}
-.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
-.toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(20px);
-  background: #0e0e0f;
-}
+/* (toggle-switch movido para seção única abaixo) */
 
 
 

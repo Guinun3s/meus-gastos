@@ -219,21 +219,6 @@ function renderGoals() {
 }
 
 // ── PICKER DE ÍCONES E CORES ─────────────────────────────────
-function buildGoalPickers() {
-  const iconWrap  = document.getElementById('goalIconPicker');
-  const colorWrap = document.getElementById('goalColorPicker');
-  if (!iconWrap || !colorWrap) return;
-
-  iconWrap.innerHTML = GOAL_ICONS.map((ic, i) =>
-    `<button class="icon-opt${i === 0 ? ' selected' : ''}" data-icon="${ic}"
-       onclick="selectGoalIcon(this)">${ic}</button>`
-  ).join('');
-
-  colorWrap.innerHTML = GOAL_COLORS.map((cl, i) =>
-    `<button class="color-opt${i === 0 ? ' selected' : ''}" data-color="${cl}"
-       style="background:${cl}" onclick="selectGoalColor(this)"></button>`
-  ).join('');
-}
 
 function selectGoalIcon(el) {
   document.querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
@@ -305,7 +290,3 @@ function buildGoalPickers() {
   });
 }
 
-// ── openGoalForm: atualiza título nos dois lugares ────────────
-const _openGoalFormOrig = openGoalForm;
-// (A função openGoalForm já foi definida acima; aqui só garantimos
-//  que o sheet mobile também exibe o título correto ao editar)

@@ -75,7 +75,7 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
 
   // Barra de progresso do mês (gastos + investimentos vs receita)
   if (receita > 0) {
-    const gastosReais = total - (ct['investimento'] || 0);
+    const gastosReais = total; // total já exclui investimentos legados
     const totalUsado  = gastosReais + invest;
     const saldo       = receita - totalUsado;
     const usedPct     = Math.min(100, Math.round(totalUsado / receita * 100));
@@ -151,7 +151,7 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
   el.innerHTML = html;
 
   // Renderiza resumo semanal dentro do mHomeExtras após setar innerHTML
-  if (typeof renderResumoSemanal === 'function') renderResumoSemanal('resumoSemHome');
+  if (typeof renderResumoSemanal === 'function') renderResumoSemanal();
 }
 
 function renderSidebar() {
