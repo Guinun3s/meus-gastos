@@ -71,7 +71,7 @@ function setSyncStatus(s) {
   dot.setAttribute('data-s', s);
   dot.title = {
     syncing: 'Sincronizando...',
-    ok:      '✓ Sincronizado',
+    ok:      'Sincronizado',
     error:   'Erro de sincronização',
   }[s] || '';
 }

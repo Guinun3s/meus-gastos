@@ -23,7 +23,7 @@
 <!-- CARREGAMENTO -->
 <!-- Banner de nova versão disponível -->
 <div id="updateBanner" style="display:none">
-  <span>🆕 Nova versão disponível</span>
+  <span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Nova versão disponível</span>
   <button onclick="applyUpdate()">Atualizar agora</button>
 </div>
 
@@ -119,7 +119,7 @@
       <div id="previsaoSidebar"></div>
       <div id="projSidebar"></div>
       <div id="sidebarCardsWrap">
-        <div class="s-label" id="sidebarCardsLabel" style="margin-top:16px">💳 cartões</div>
+        <div class="s-label" id="sidebarCardsLabel" style="margin-top:16px"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> cartões</div>
         <div id="sidebarCards"></div>
       </div>
       <div>
@@ -234,8 +234,8 @@
               <label class="flabel">Tipo de lançamento</label>
               <select class="fselect" id="expType" onchange="onExpTypeChange(this)">
                 <option value="normal">Normal</option>
-                <option value="recorrente">🔄 Recorrente</option>
-                <option value="parcelado">📦 Parcelado</option>
+                <option value="recorrente">↺ Recorrente</option>
+                <option value="parcelado">⊡ Parcelado</option>
               </select>
             </div>
             <div class="exp-type-extra" id="expTypeExtra">
@@ -248,7 +248,7 @@
 
           <!-- Seletor de meta (desktop) -->
           <div class="d-only goal-link-row" id="goalLinkWrap" style="display:none">
-            <span class="flabel" style="white-space:nowrap">🎯 Qual meta?</span>
+            <span class="flabel" style="white-space:nowrap"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Qual meta?</span>
             <select class="fselect" id="goalLink" onchange="onGoalLinkChange(this)"></select>
           </div>
         </div>
@@ -539,7 +539,7 @@
       <span class="nav-icon nav-svg" data-nav="graficos">◎</span><span class="nav-label">Gráficos</span>
     </button>
     <button class="nav-btn" onclick="openSheet('sheetMenu')">
-      <span class="nav-icon nav-svg" data-nav="menu">☰</span><span class="nav-label">Menu</span>
+      <span class="nav-icon nav-svg" data-nav="menu"></span><span class="nav-label">Menu</span>
     </button>
   </nav>
 
@@ -568,7 +568,7 @@
 <!-- Modal: editar lançamento (despesa) -->
 <div class="modal-bg d-only" id="modalEdit">
   <div class="modal">
-    <h3>✎ Editar lançamento</h3>
+    <h3><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Editar lançamento</h3>
     <div class="modal-field">
       <label class="modal-label">Descrição</label>
       <input class="finput" type="text" id="editDesc" placeholder="ex: Mercado Extra" style="width:100%" />
@@ -614,7 +614,7 @@
 <!-- Modal: editar receita -->
 <div class="modal-bg d-only" id="modalEditIncome">
   <div class="modal">
-    <h3>✎ Editar receita</h3>
+    <h3><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Editar receita</h3>
     <div class="modal-field">
       <label class="modal-label">Descrição</label>
       <input class="finput" type="text" id="editIncDesc" placeholder="ex: Salário" style="width:100%" />
@@ -646,7 +646,7 @@
 <!-- Modal: editar investimento (desktop) -->
 <div class="modal-bg d-only" id="modalEditInvest">
   <div class="modal">
-    <h3>✎ Editar investimento</h3>
+    <h3><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Editar investimento</h3>
     <div class="modal-field">
       <label class="modal-label">Descrição</label>
       <input class="finput" type="text" id="editInvDesc" placeholder="ex: Tesouro Selic" style="width:100%" />
@@ -729,7 +729,7 @@
 <!-- Modal: tema -->
 <div class="modal-bg" id="modalTheme">
   <div class="modal" style="max-width:320px">
-    <h3>🎨 Tema visual</h3>
+    <h3><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg> Tema visual</h3>
     <div class="theme-opts">
       <button class="theme-opt-btn active" data-theme-opt="classic" onclick="applyTheme('classic')">
         <div class="theme-preview-box classic-preview">
@@ -759,7 +759,7 @@
 <!-- Modal: configurações de notificações -->
 <div class="modal-bg" id="modalNotif">
   <div class="modal" style="max-width:360px">
-    <h3>🔔 Notificações</h3>
+    <h3><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Notificações</h3>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div>
@@ -783,7 +783,7 @@
     </div>
 
     <div style="font-size:11px;color:var(--text3);margin-top:12px;margin-bottom:16px">
-      💡 Para funcionar com o app fechado, instale-o na tela inicial.
+      <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> Para funcionar com o app fechado, instale-o na tela inicial.
     </div>
 
     <div class="modal-actions">
@@ -916,8 +916,8 @@
       <label class="m-flabel">Tipo de lançamento</label>
       <select class="m-fselect" id="mExpType" onchange="onExpTypeChange(this)">
         <option value="normal">Normal</option>
-        <option value="recorrente">🔄 Recorrente</option>
-        <option value="parcelado">📦 Parcelado</option>
+        <option value="recorrente">↺ Recorrente</option>
+        <option value="parcelado">⊡ Parcelado</option>
       </select>
     </div>
     <div class="m-exp-type-extra" id="mExpTypeExtra">
@@ -1063,32 +1063,32 @@
     <!-- Telas secundárias -->
     <div class="menu-section-label">Telas</div>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('investimentos', document.querySelector('.nav-btn'))">
-      <span class="menu-icon nav-svg" data-nav="investimentos">↗</span> Investimentos
+      <span class="menu-icon nav-svg" data-nav="investimentos"></span> Investimentos
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('historico', document.querySelector('.nav-btn'))">
-      <span class="menu-icon nav-svg" data-nav="historico">⏱</span> Histórico
+      <span class="menu-icon nav-svg" data-nav="historico"></span> Histórico
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('orcamento', document.querySelector('.nav-btn'))">
-      <span class="menu-icon nav-svg" data-nav="orcamento">◈</span> Orçamento
+      <span class="menu-icon nav-svg" data-nav="orcamento"></span> Orçamento
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('metas', document.querySelector('.nav-btn'))">
-      <span class="menu-icon nav-svg" data-nav="metas">★</span> Metas
+      <span class="menu-icon nav-svg" data-nav="metas"></span> Metas
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('compromissos', document.querySelector('.nav-btn'))">
-      <span class="menu-icon nav-svg" data-nav="compromissos">⊟</span> Fixos
+      <span class="menu-icon nav-svg" data-nav="compromissos"></span> Fixos
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); switchMobilePage('cartoes', document.querySelector('.nav-btn'))">
-      <span class="menu-icon nav-svg" data-nav="cartoes">💳</span> Cartões
+      <span class="menu-icon nav-svg" data-nav="cartoes"></span> Cartões
     </button>
     <div class="menu-section-label" style="margin-top:8px">Ações</div>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openGoalForm()">
-      <span class="menu-icon">★</span> Nova meta
+      <span class="menu-icon"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span> Nova meta
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openExportM()">
-      <span class="menu-icon">↓</span> Exportar CSV
+      <span class="menu-icon"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Exportar CSV
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openSheet('sheetImport')">
-      <span class="menu-icon">↑</span> Importar CSV
+      <span class="menu-icon"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span> Importar CSV
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openNotifSettings()">
       <span class="menu-icon"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;vertical-align:middle"><path d="M8 2a4 4 0 0 0-4 4v3l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 13a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5"/></svg></span> Notificações
@@ -1176,7 +1176,7 @@
     <span class="tpl-panel-title">Templates</span>
     <div style="display:flex;gap:6px">
       <button class="btn-s" style="font-size:11px;padding:4px 10px" onclick="saveCurrentAsTemplate()">+ Salvar atual</button>
-      <button class="gs-close" onclick="closeTemplatesPanel()">✕</button>
+      <button class="gs-close" onclick="closeTemplatesPanel()"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
   </div>
   <div id="templatesList" class="tpl-list"></div>
@@ -1195,7 +1195,7 @@
         oninput="onGlobalSearchInput(this.value)"
         onkeydown="if(event.key==='Escape') closeGlobalSearch()"
         autocomplete="off" />
-      <button class="gs-close" onclick="closeGlobalSearch()">✕</button>
+      <button class="gs-close" onclick="closeGlobalSearch()"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div id="globalSearchResults" class="gs-results"></div>
   </div>

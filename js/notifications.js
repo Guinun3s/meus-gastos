@@ -72,8 +72,8 @@ function scheduleReminder() {
   // Dispara após 8s (app já carregou)
   setTimeout(async () => {
     const msgs = {
-      diario:  'Lembre-se de registrar seus gastos de hoje 💰',
-      semanal: 'Início de semana: que tal revisar seus gastos? 📊'
+      diario:  'Lembre-se de registrar seus gastos de hoje',
+      semanal: 'Início de semana: que tal revisar seus gastos?'
     };
     await _showNotification(
       'meu $ dinheiro',
@@ -94,11 +94,11 @@ function checkGoalAlerts(goals) {
     if (celebrated.includes(g.id)) return;
 
     // Toast imediato
-    setTimeout(() => toast(`🎉 Meta "${g.name}" atingida! Parabéns!`), 300);
+    setTimeout(() => toast(`Meta "${g.name}" atingida! Parabéns!`), 300);
 
     // Push se habilitado
     _showNotification(
-      '🎉 Meta atingida!',
+      'Meta atingida!',
       `Parabéns! Você concluiu a meta "${g.name}" de ${fmt(g.target)}!`,
       `goal-${g.id}`
     );
@@ -116,8 +116,8 @@ function openNotifSettings() {
   const perm = Notification.permission;
 
   document.getElementById('notifPermStatus').textContent =
-    perm === 'granted' ? '✓ Permitido' :
-    perm === 'denied'  ? '✗ Bloqueado' : 'Não solicitado';
+    perm === 'granted' ? 'Permitido' :
+    perm === 'denied'  ? 'Bloqueado' : 'Não solicitado';
   document.getElementById('notifPermStatus').style.color =
     perm === 'granted' ? 'var(--accent)' : 'var(--red)';
 

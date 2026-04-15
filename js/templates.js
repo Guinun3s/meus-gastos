@@ -96,7 +96,7 @@ function renderTemplatesList() {
           <span class="tpl-meta">${cat.name} · ${PAY_LABELS[t.pay] || t.pay}${t.valor ? ' · ' + fmt(t.valor) : ''}</span>
         </div>
       </button>
-      <button class="tpl-del" onclick="deleteTemplate(${t.id})" title="Remover">✕</button>
+      <button class="tpl-del" onclick="deleteTemplate(${t.id})" title="Remover">${typeof icon==='function'?icon('x','icon-sm'):'✕'}</button>
     </div>`;
   }).join('');
 }

@@ -94,17 +94,12 @@ function switchMobilePage(name, btn) {
 // ── Atualiza ícones SVG da nav mobile ────────────────────────
 function _refreshNavIcons() {
   const isNeon = isNeonTheme();
-  const fallbacks = {
-    home: '⌂', lancamentos: '≡', receitas: '↑', graficos: '◎',
-    historico: '⏱', orcamento: '◈', metas: '★', compromissos: '⊟',
-    cartoes: '💳', menu: '☰', investimentos: '↗'
-  };
   document.querySelectorAll('.nav-svg[data-nav]').forEach(el => {
     const key = el.dataset.nav;
     if (isNeon && typeof NAV_ICONS !== 'undefined' && NAV_ICONS[key]) {
       el.innerHTML = NAV_ICONS[key];
-    } else {
-      el.textContent = fallbacks[key] || '';
+    } else if (typeof NAV_ICONS_CLASSIC !== 'undefined' && NAV_ICONS_CLASSIC[key]) {
+      el.innerHTML = NAV_ICONS_CLASSIC[key]();
     }
   });
 }

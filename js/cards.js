@@ -213,8 +213,8 @@ function _buildCardsHTML(cards) {
       <div class="cc-meta">Fecha dia ${c.closing} · Vence dia ${c.due}</div>
     </div>
     <div style="display:flex;gap:4px">
-      <button class="td-edit" onclick="openCardForm(${c.id})">✎</button>
-      <button class="td-del"  onclick="deleteCard(${c.id})">×</button>
+      <button class="td-edit" onclick="openCardForm(${c.id})">${typeof icon==='function'?icon('pencil','icon-sm'):'✎'}</button>
+      <button class="td-del"  onclick="deleteCard(${c.id})">${typeof icon==='function'?icon('x','icon-sm'):'×'}</button>
     </div>
   </div>
   <div class="cc-body">

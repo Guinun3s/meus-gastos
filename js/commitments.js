@@ -105,7 +105,7 @@ function _buildRecurringHTML(groups) {
         </div>
       </div>
       ${isActive && cancelIdx !== null
-        ? `<button class="cm-cancel-btn" onclick="cancelRecurringFrom(${g.id}, ${cancelIdx})" title="Cancelar a partir de hoje">✕</button>`
+        ? `<button class="cm-cancel-btn" onclick="cancelRecurringFrom(${g.id}, ${cancelIdx})" title="Cancelar a partir de hoje">${typeof icon==='function'?icon('x','icon-sm'):'✕'}</button>`
         : ''}
     </div>`;
   }).join('');
@@ -139,7 +139,7 @@ function _buildInstallmentHTML(groups) {
         </div>
       </div>
       ${isActive
-        ? `<button class="cm-cancel-btn" onclick="cancelAllInstallments(${g.id})" title="Cancelar restantes">✕</button>`
+        ? `<button class="cm-cancel-btn" onclick="cancelAllInstallments(${g.id})" title="Cancelar restantes">${typeof icon==='function'?icon('x','icon-sm'):'✕'}</button>`
         : ''}
     </div>`;
   }).join('');

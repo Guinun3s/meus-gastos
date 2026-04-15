@@ -106,7 +106,7 @@ function checkBudgetAlerts() {
     el.innerHTML = visible.map(a =>
       `<div class="budget-alert-pill" style="border-color:${a.color};color:${a.color}">
         <span>${a.icon} ${a.msg}</span>
-        <button class="alert-dismiss-btn" onclick="dismissAlert('${a.key}')" title="Dispensar">✕</button>
+        <button class="alert-dismiss-btn" onclick="dismissAlert('${a.key}')" title="Dispensar">${typeof icon==='function'?icon('x','icon-sm'):'✕'}</button>
       </div>`
     ).join('');
     el.style.display = '';

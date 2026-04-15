@@ -129,8 +129,9 @@ function renderPrevisao() {
   const barColor = danger ? 'var(--red)' : 'var(--accent)';
   const projColor = danger ? 'var(--red)' : 'var(--accent)';
 
+  const _icoTrend = typeof icon === 'function' ? icon('trending-up','icon-sm') : '';
   const htmlM = `
-    <div class="m-cat-title">📈 previsão do mês</div>
+    <div class="m-cat-title">${_icoTrend} previsão do mês</div>
     <div class="prev-card">
       <div class="prev-row">
         <span class="prev-label">Projeção final</span>
@@ -144,12 +145,12 @@ function renderPrevisao() {
         <div class="bar-fill" style="width:${pct}%;background:${barColor}"></div>
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:3px">
-        ${p.ritmo}% do mês · ${danger ? '⚠ acima da média' : '✓ dentro da média'}
+        ${p.ritmo}% do mês · ${danger ? (typeof icon==='function'?icon('alert-triangle','icon-sm'):'⚠')+' acima da média' : (typeof icon==='function'?icon('check','icon-sm'):'✓')+' dentro da média'}
       </div>
     </div>`;
 
   const htmlD = `
-    <div class="s-label" style="margin-top:16px">📈 previsão</div>
+    <div class="s-label" style="margin-top:16px">${_icoTrend} previsão</div>
     <div style="margin-bottom:14px">
       <div style="font-size:11px;color:var(--text2);margin-bottom:4px">
         Projeção: <span style="color:${projColor};font-family:var(--mono);font-weight:500">${fmt(p.projecao)}</span>
@@ -161,7 +162,7 @@ function renderPrevisao() {
         <div class="sbar-fill" style="width:${pct}%;background:${barColor}"></div>
       </div>
       <div style="font-size:10px;color:${danger ? 'var(--red)' : 'var(--text3)'};margin-top:3px">
-        ${danger ? '⚠ acima da média' : '✓ dentro da média'}
+        ${danger ? (typeof icon==='function'?icon('alert-triangle','icon-sm'):'⚠')+' acima da média' : (typeof icon==='function'?icon('check','icon-sm'):'✓')+' dentro da média'}
       </div>
     </div>`;
 
@@ -183,7 +184,7 @@ function renderResumoSemanal() {
   const pctTxt  = r.diffPct !== null ? ` (${Math.abs(r.diffPct)}%)` : '';
 
   el.innerHTML = `
-    <div class="m-cat-title">📅 esta semana</div>
+    <div class="m-cat-title">${typeof icon==='function'?icon('calendar','icon-sm'):''} esta semana</div>
     <div class="sem-card">
       <div class="sem-row">
         <span class="sem-label">Esta semana</span>

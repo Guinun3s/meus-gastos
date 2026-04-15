@@ -154,7 +154,7 @@ function _fillGoalLinkSelect(selectId) {
     const saved  = parseFloat(g.saved) || 0;
     const pct    = g.target > 0 ? Math.round(saved / g.target * 100) : 0;
     const suffix = saved >= g.target ? ' ✓' : ` — ${pct}%`;
-    return `<option value="${g.id}">${g.icon || '🎯'} ${g.name}${suffix}</option>`;
+    return `<option value="${g.id}">${g.name}${suffix}</option>`;
   }).join('');
 }
 
@@ -712,14 +712,16 @@ function _renderExtratoDesktop(unified) {
       valColor = '#60b0ff';
       prefix = '↗';
     }
+    const _editIco = typeof icon === 'function' ? icon('pencil','icon-sm') : '✎';
+    const _delIco  = typeof icon === 'function' ? icon('x','icon-sm') : '×';
     const deleteBtn = e._tipo === 'gasto'
-      ? `<button class="td-edit" onclick="openEditExpense(${e.id})" title="Editar">✎</button>
-         <button class="td-del" onclick="deleteExpense(${e.id})">×</button>`
+      ? `<button class="td-edit" onclick="openEditExpense(${e.id})" title="Editar">${_editIco}</button>
+         <button class="td-del" onclick="deleteExpense(${e.id})">${_delIco}</button>`
       : e._tipo === 'receita'
-      ? `<button class="td-edit" onclick="openEditIncome(${e.id})" title="Editar">✎</button>
-         <button class="td-del" onclick="deleteIncome(${e.id})">×</button>`
-      : `<button class="td-edit" onclick="openEditInvestimento(${e.id})" title="Editar">✎</button>
-         <button class="td-del" onclick="deleteInvestimento(${e.id})">×</button>`;
+      ? `<button class="td-edit" onclick="openEditIncome(${e.id})" title="Editar">${_editIco}</button>
+         <button class="td-del" onclick="deleteIncome(${e.id})">${_delIco}</button>`
+      : `<button class="td-edit" onclick="openEditInvestimento(${e.id})" title="Editar">${_editIco}</button>
+         <button class="td-del" onclick="deleteInvestimento(${e.id})">${_delIco}</button>`;
     return `<tr>
       <td>${e.desc}${e._tipo === 'gasto' ? _typeBadge(e) : ''}</td>
       <td>${catCell}</td><td>${payCell}</td>
@@ -752,22 +754,28 @@ function _renderExtratoMobile(unified) {
         : `<span class="m-top-cat-dot" style="background:${catById(e.cat)?.color||'#888'}"></span>`;
       metaPill = catPill(e.cat) + payPill(e.pay);
       valColor = 'var(--red)'; prefix = '−';
-      delBtn = `<button class="m-edit-btn" onclick="openEditExpense(${e.id})">✎</button>
-                <button class="m-del-btn" onclick="deleteExpense(${e.id})">×</button>`;
+      const _ei = typeof icon === 'function' ? icon('pencil','icon-sm') : '✎';
+      const _di = typeof icon === 'function' ? icon('x','icon-sm') : '×';
+      delBtn = `<button class="m-edit-btn" onclick="openEditExpense(${e.id})">${_ei}</button>
+                <button class="m-del-btn" onclick="deleteExpense(${e.id})">${_di}</button>`;
     } else if (e._tipo === 'receita') {
       const c = e.tipo==='banco' ? '#60b0ff' : '#40d090';
       iconHtml = `<span class="m-top-cat-dot" style="background:${c}"></span>`;
       metaPill = `<span class="pill" style="background:${c}1a;color:${c};border-color:${c}40">Receita · ${e.tipo==='banco'?'Banco':'Dinheiro'}</span>`;
       valColor = 'var(--accent)'; prefix = '+';
-      delBtn = `<button class="m-edit-btn" onclick="openEditIncome(${e.id})">✎</button>
-                <button class="m-del-btn" onclick="deleteIncome(${e.id})">×</button>`;
+      const _ei2 = typeof icon === 'function' ? icon('pencil','icon-sm') : '✎';
+      const _di2 = typeof icon === 'function' ? icon('x','icon-sm') : '×';
+      delBtn = `<button class="m-edit-btn" onclick="openEditIncome(${e.id})">${_ei2}</button>
+                <button class="m-del-btn" onclick="deleteIncome(${e.id})">${_di2}</button>`;
     } else {
       const { label, color } = _invMeta(e);
       iconHtml = `<span class="m-top-cat-dot" style="background:${color}"></span>`;
       metaPill = `<span class="pill" style="background:${color}1a;color:${color};border-color:${color}40">${label}</span>`;
       valColor = '#60b0ff'; prefix = '↗';
-      delBtn = `<button class="m-edit-btn" onclick="openEditInvestimento(${e.id})">✎</button>
-                <button class="m-del-btn" onclick="deleteInvestimento(${e.id})">×</button>`;
+      const _ei3 = typeof icon === 'function' ? icon('pencil','icon-sm') : '✎';
+      const _di3 = typeof icon === 'function' ? icon('x','icon-sm') : '×';
+      delBtn = `<button class="m-edit-btn" onclick="openEditInvestimento(${e.id})">${_ei3}</button>
+                <button class="m-del-btn" onclick="deleteInvestimento(${e.id})">${_di3}</button>`;
     }
     return `<div class="m-exp-card">
       <div class="m-neon-card-head">

@@ -189,8 +189,8 @@ function _renderInvestTable() {
       <td class="td-date">${fmtDate(e.data)}</td>
       <td class="td-r" style="color:var(--accent)">${fmt(e.valor)}</td>
       <td>
-        <button class="td-edit" onclick="openEditInvestimento(${e.id})" title="Editar">✎</button>
-        <button class="td-del" onclick="deleteInvestimento(${e.id})">×</button>
+        <button class="td-edit" onclick="openEditInvestimento(${e.id})" title="Editar">${typeof icon==='function'?icon('pencil','icon-sm'):'✎'}</button>
+        <button class="td-del" onclick="deleteInvestimento(${e.id})">${typeof icon==='function'?icon('x','icon-sm'):'×'}</button>
       </td>
     </tr>`;
   }).join('');
@@ -220,8 +220,8 @@ function _renderInvestMobile() {
       <div class="m-exp-foot">
         <span class="m-exp-date">${fmtDate(e.data)}</span>
         <div style="display:flex;gap:4px">
-          <button class="m-edit-btn" onclick="openEditInvestimento(${e.id})">✎</button>
-          <button class="m-del-btn" onclick="deleteInvestimento(${e.id})">×</button>
+          <button class="m-edit-btn" onclick="openEditInvestimento(${e.id})">${typeof icon==='function'?icon('pencil','icon-sm'):'✎'}</button>
+          <button class="m-del-btn" onclick="deleteInvestimento(${e.id})">${typeof icon==='function'?icon('x','icon-sm'):'×'}</button>
         </div>
       </div>
     </div>`;

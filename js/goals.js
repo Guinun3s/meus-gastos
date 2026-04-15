@@ -16,7 +16,9 @@
 // categoria "investimento", descontando do saldo real.
 // ============================================================
 
-const GOAL_ICONS   = ['🎯','🚗','✈️','🏠','📱','💻','🎓','💍','🏖️','🏋️','🎸','📷','⛵','🌍','💰'];
+// GOAL_ICONS mantido para compatibilidade (legado); novo picker usa GOAL_ICON_NAMES de icons.js
+const GOAL_ICONS = typeof GOAL_ICON_NAMES !== 'undefined' ? GOAL_ICON_NAMES
+  : ['target','car','plane','home','smartphone','laptop','graduation-cap','heart','umbrella','dumbbell','music','camera','anchor','globe','wallet'];
 const GOAL_COLORS  = ['#7ab648','#60a8f0','#a888f0','#f0b860','#f06060','#50c8a0','#e878c0','#c8f060'];
 
 // ── CRUD ─────────────────────────────────────────────────────
@@ -25,7 +27,7 @@ function addGoal() {
   const target   = parseFloat(document.getElementById('goalTarget').value);
   const saved    = parseFloat(document.getElementById('goalSaved').value) || 0;
   const deadline = document.getElementById('goalDeadline').value;
-  const icon     = document.querySelector('.icon-opt.selected')?.dataset.icon || '🎯';
+  const icon     = document.querySelector('.icon-opt.selected')?.dataset.icon || 'target';
   const color    = document.querySelector('.color-opt.selected')?.dataset.color || GOAL_COLORS[0];
 
   if (!name || isNaN(target) || target <= 0) {
@@ -145,7 +147,7 @@ function renderGoals() {
 
   if (!goals.length) {
     const empty = `<div class="goals-empty">
-      <div class="goals-empty-icon">★</div>
+      <div class="goals-empty-icon">${typeof icon === 'function' ? icon('star') : ''}</div>
       <div class="goals-empty-text">Nenhuma meta ainda.</div>
       <div class="goals-empty-sub">Crie sua primeira meta financeira!</div>
     </div>`;
@@ -182,13 +184,13 @@ function renderGoals() {
 
     return `<div class="goal-card ${done ? 'goal-done' : ''}" style="--gc:${g.color}">
       <div class="goal-card-top">
-        <div class="goal-icon">${g.icon || '★'}</div>
+        <div class="goal-icon">${typeof getGoalIconHtml === 'function' ? getGoalIconHtml(g.icon) : (g.icon || '')}</div>
         <div class="goal-info">
           <div class="goal-name">${g.name}</div>
           <div class="goal-period">${g.deadline ? fmtDateBR(g.deadline) : ''}</div>
         </div>
         <div class="goal-actions">
-          <button class="goal-btn-edit" onclick="editGoal(${g.id})" title="Editar">✎</button>
+          <button class="goal-btn-edit" onclick="editGoal(${g.id})" title="Editar">${typeof icon === 'function' ? icon('pencil', 'icon-sm') : '✎'}</button>
           <button class="goal-btn-del"  onclick="deleteGoal(${g.id})" title="Remover">×</button>
         </div>
       </div>
@@ -197,7 +199,7 @@ function renderGoals() {
         <span class="goal-saved">${fmt(saved)}</span>
         <span class="goal-sep">de</span>
         <span class="goal-target">${fmt(target)}</span>
-        ${done ? '<span class="goal-badge">✓ Concluída</span>' : ''}
+        ${done ? `<span class="goal-badge">${typeof icon === 'function' ? icon('check', 'icon-sm') : '✓'} Concluída</span>` : ''}
       </div>
 
       <div class="goal-bar-bg">
@@ -280,7 +282,7 @@ function buildGoalPickers() {
 
     iconWrap.innerHTML = GOAL_ICONS.map((ic, i) =>
       `<button class="icon-opt${i === 0 ? ' selected' : ''}" data-icon="${ic}"
-         onclick="selectGoalIcon(this)">${ic}</button>`
+         onclick="selectGoalIcon(this)" title="${ic}">${typeof getGoalIconHtml === 'function' ? getGoalIconHtml(ic) : ic}</button>`
     ).join('');
 
     colorWrap.innerHTML = GOAL_COLORS.map((cl, i) =>

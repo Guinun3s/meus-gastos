@@ -151,8 +151,8 @@ function _renderIncomesDesktop(list) {
       <td class="td-date">${fmtDate(i.data)}</td>
       <td class="td-r" style="color:var(--accent)">${fmt(i.valor)}</td>
       <td>
-        <button class="td-edit" onclick="openEditIncome(${i.id})" title="Editar">✎</button>
-        <button class="td-del"  onclick="deleteIncome(${i.id})"  title="Remover">×</button>
+        <button class="td-edit" onclick="openEditIncome(${i.id})" title="Editar">${typeof icon==='function'?icon('pencil','icon-sm'):'✎'}</button>
+        <button class="td-del"  onclick="deleteIncome(${i.id})"  title="Remover">${typeof icon==='function'?icon('x','icon-sm'):'×'}</button>
       </td>
     </tr>`;
   }).join('');
@@ -180,8 +180,8 @@ function _renderIncomesMobile(list) {
       <div class="m-exp-foot">
         <span class="m-exp-date">${fmtDate(i.data)}</span>
         <div style="display:flex;gap:4px">
-          <button class="m-edit-btn" onclick="openEditIncome(${i.id})">✎</button>
-          <button class="m-del-btn"  onclick="deleteIncome(${i.id})">×</button>
+          <button class="m-edit-btn" onclick="openEditIncome(${i.id})">${typeof icon==='function'?icon('pencil','icon-sm'):'✎'}</button>
+          <button class="m-del-btn"  onclick="deleteIncome(${i.id})">${typeof icon==='function'?icon('x','icon-sm'):'×'}</button>
         </div>
       </div>
     </div>`;

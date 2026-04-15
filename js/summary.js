@@ -64,7 +64,7 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
         </div>
       </div>
       <div style="flex:1;display:flex;align-items:center;gap:6px">
-        <span style="font-size:16px">💵</span>
+        ${typeof icon==='function'?icon('wallet','icon-sm'):''}
         <div>
           <div style="font-size:10px;color:var(--text3)">Dinheiro</div>
           <div style="font-size:14px;font-family:var(--mono);font-weight:600;color:${saldoDin >= 0 ? 'var(--accent)' : 'var(--red)'}">${(saldoDin < 0 ? '−' : '') + fmt(Math.abs(saldoDin))}</div>
@@ -93,7 +93,7 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
         <div class="m-progress-bar-fill" style="width:${usedPct}%;background:${barColor}"></div>
       </div>
       <div class="m-progress-msg" style="color:${saldo >= 0 ? 'var(--accent)' : 'var(--red)'}">
-        ${saldo >= 0 ? '✓ Sobra ' + fmt(saldo) : '⚠ Excedeu ' + fmt(Math.abs(saldo))}
+        ${saldo >= 0 ? (typeof icon==='function'?icon('check','icon-sm'):'✓')+' Sobra '+fmt(saldo) : (typeof icon==='function'?icon('alert-triangle','icon-sm'):'⚠')+' Excedeu '+fmt(Math.abs(saldo))}
       </div>
     </div>`;
   }
@@ -179,7 +179,7 @@ function renderSidebar() {
           </div>
         </div>
         <div class="s-bal-item">
-          <span class="s-bal-icon">💵</span>
+          <span class="s-bal-icon">${typeof icon==='function'?icon('wallet','icon-sm'):''}</span>
           <div>
             <div class="s-bal-sub">Dinheiro</div>
             <div class="s-bal-val ${saldoDin >= 0 ? 'green' : 'red'}">${(saldoDin < 0 ? '−' : '') + fmt(Math.abs(saldoDin))}</div>
@@ -232,7 +232,7 @@ function renderSidebar() {
             <div class="sbar-fill" style="width:${pct}%;background:${barColor}"></div>
           </div>
           <div style="font-size:10px;color:${danger ? 'var(--red)' : 'var(--text3)'};margin-top:3px">
-            ${pct}% do limite${danger ? ' ⚠' : ''}
+            ${pct}% do limite${danger ? ' '+(typeof icon==='function'?icon('alert-triangle','icon-sm'):'⚠') : ''}
           </div>
         </div>`;
       }).join('');

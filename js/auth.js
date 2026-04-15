@@ -75,7 +75,7 @@ async function handleForgotPassword() {
   try {
     await _auth.sendPasswordResetEmail(email);
     clearAuthErr();
-    toast('✓ E-mail de recuperação enviado!');
+    toast('E-mail de recuperação enviado!');
   } catch (e) { showAuthErr(translateAuthError(e.code)); }
 }
 
