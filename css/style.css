@@ -1850,7 +1850,6 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
   line-height: 1;
   margin: 0 auto 2px;
   margin-top: -20px;
-  box-shadow: 0 4px 16px rgba(128,96,255,0.4), 0 2px 8px rgba(0,0,0,0.3);
   border: 3px solid var(--bg);
   transition: transform .15s, box-shadow .15s;
 }
@@ -1861,7 +1860,7 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
 
 /* Classic theme fab button color */
 :root .nav-fab-btn { background: linear-gradient(135deg, #c8f060, #7ab648); color: #0e0e0f; }
-[data-theme="neon"] .nav-fab-btn { background: linear-gradient(135deg, #8060ff, #ff40a0); color: #fff; }
+[data-theme="neon"] .nav-fab-btn { background: linear-gradient(135deg, #8060ff, #ff40a0); color: #fff; box-shadow: 0 4px 16px rgba(128,96,255,0.4), 0 2px 8px rgba(0,0,0,0.3);}
 
 /* ── Home mobile — seções limpas ────────────────── */
 .m-progress-card {
