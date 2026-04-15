@@ -544,7 +544,7 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
 .goal-icon .icon {
   width: 22px;
   height: 22px;
-  top: 0;
+  vertical-align: middle;
   stroke: var(--text2);
 }
 .goal-info { flex: 1; min-width: 0; }
@@ -2547,63 +2547,45 @@ tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-al
    ÍCONES LUCIDE — estilos base e por tema
 ════════════════════════════════════════════════ */
 
-/* Base: ícone herda currentColor, alinha verticalmente */
+/* ── Base ─────────────────────────────────────────────────────── */
 .icon {
-  width: 1em;
-  height: 1em;
+  width: 16px;
+  height: 16px;
   display: inline-block;
-  vertical-align: middle;
+  vertical-align: -0.2em;   /* alinhamento óptico com texto */
   flex-shrink: 0;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  position: relative;
-  top: -1px; /* alinhamento óptico */
+  overflow: visible;
 }
 
-.icon-sm {
-  width: .85em;
-  height: .85em;
-}
+/* Emoji legado de metas */
+.icon-emoji { font-size: 1em; line-height: 1; }
 
-/* Emoji legado (ícones de metas ainda em emoji) */
-.icon-emoji {
-  font-size: 1em;
-  line-height: 1;
-}
-
-/* Picker de ícones de metas — usa SVG agora */
-.icon-opt {
-  font-size: 14px; /* tamanho da referência para 1em */
-}
-.icon-opt .icon { width: 18px; height: 18px; top: 0; }
-
-/* ── Tema Classic ────────────────────────────────────────────── */
-/* Ícones de navegação (bottom nav) */
-.nav-svg .icon, .nav-svg svg {
+/* ── Navegação bottom (classic) ───────────────────────────────── */
+.nav-svg .icon,
+.nav-svg svg {
   width: 22px;
   height: 22px;
-  top: 0;
-  stroke: currentColor;
+  display: block;
+  margin: 0 auto;
+  vertical-align: unset;
 }
 
-/* Ícones de menu sheet */
-.menu-icon .icon, .menu-icon svg {
-  width: 18px;
-  height: 18px;
-  top: 0;
-  stroke: currentColor;
+/* ── Menu sheet ───────────────────────────────────────────────── */
+.menu-icon .icon,
+.menu-icon svg {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
 }
 
-/* Ícones em headers de modal */
-h3 .icon { width: 18px; height: 18px; top: -1px; }
+/* ── Headers de modal / sheet title ──────────────────────────── */
+h3 .icon { width: 18px; height: 18px; vertical-align: -0.25em; }
 
-/* Labels de sidebar */
-.s-label .icon { width: 14px; height: 14px; top: -1px; }
+/* ── Labels de sidebar e seção ───────────────────────────────── */
+.s-label .icon,
+.m-cat-title .icon { width: 14px; height: 14px; vertical-align: -0.2em; }
 
-/* Botões de ação inline */
+/* ── Botões de ação (editar / remover / fechar) ──────────────── */
 .td-edit .icon, .td-del .icon,
 .m-edit-btn .icon, .m-del-btn .icon,
 .goal-btn-edit .icon,
@@ -2613,49 +2595,74 @@ h3 .icon { width: 18px; height: 18px; top: -1px; }
 .gs-close .icon {
   width: 14px;
   height: 14px;
-  top: 0;
+  vertical-align: middle;
 }
 
-/* Ícone no update banner */
-#updateBanner .icon { width: 16px; height: 16px; top: -1px; }
+/* ── Badge de meta concluída ─────────────────────────────────── */
+.goal-badge .icon { width: 12px; height: 12px; vertical-align: -0.15em; }
+
+/* ── Progress / mensagem saldo ───────────────────────────────── */
+.m-progress-msg .icon { width: 14px; height: 14px; vertical-align: -0.2em; }
+
+/* ── Update banner ───────────────────────────────────────────── */
+#updateBanner .icon { width: 15px; height: 15px; vertical-align: -0.2em; }
+
+/* ── Picker de ícones de metas ───────────────────────────────── */
+.icon-opt .icon { width: 18px; height: 18px; vertical-align: middle; }
+
+/* ── Ícone de saldo (wallet) em cards ───────────────────────── */
+.s-bal-icon .icon { width: 18px; height: 18px; vertical-align: middle; }
+
+/* ── ícone de flabel (ex: "qual meta?") ──────────────────────── */
+.flabel .icon { width: 13px; height: 13px; vertical-align: -0.15em; }
+
+/* ── Ícone na sidebar (sidebarCardsLabel) ─────────────────────── */
+.s-label .icon { width: 13px; height: 13px; }
+
+/* ── Ícone dentro de goal-icon (card de meta) ───────────────── */
+.goal-icon .icon {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+}
 
 /* ── Tema Neon — brilho nos ícones de destaque ───────────────── */
-[data-theme="neon"] .icon {
-  stroke: currentColor;
+
+/* Nav ativa: ícone herda accent e recebe glow */
+[data-theme="neon"] .nav-btn.active .nav-svg .icon,
+[data-theme="neon"] .nav-btn.active .nav-svg svg {
+  filter: drop-shadow(0 0 5px currentColor);
 }
 
-/* Nav ativa em neon: o botão .active recebe accent, o SVG herda */
-[data-theme="neon"] .nav-btn.active .icon,
-[data-theme="neon"] .nav-btn.active svg {
-  filter: drop-shadow(0 0 4px currentColor);
+/* Headers de modal em neon */
+[data-theme="neon"] h3 .icon {
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 6px var(--accent));
 }
-
-/* Ícones de confirmação/alerta em neon */
-[data-theme="neon"] .icon.icon-ok  { stroke: var(--accent); filter: drop-shadow(0 0 3px var(--accent)); }
-[data-theme="neon"] .icon.icon-warn { stroke: var(--amber);  filter: drop-shadow(0 0 3px var(--amber));  }
-
-/* Modais e headers em neon */
-[data-theme="neon"] h3 .icon { stroke: var(--accent); filter: drop-shadow(0 0 6px var(--accent)); }
 
 /* Menu items em neon */
 [data-theme="neon"] .menu-item .icon,
 [data-theme="neon"] .menu-item svg {
-  filter: drop-shadow(0 0 3px var(--accent));
-  stroke: var(--accent);
-}
-
-/* Goal icon em neon */
-[data-theme="neon"] .goal-icon .icon {
   stroke: var(--accent);
   filter: drop-shadow(0 0 4px var(--accent));
-  width: 28px;
-  height: 28px;
+}
+
+/* Ícone de metas em neon */
+[data-theme="neon"] .goal-icon .icon {
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 5px var(--accent));
 }
 
 /* Picker de ícones em neon */
 [data-theme="neon"] .icon-opt .icon { stroke: var(--text2); }
-[data-theme="neon"] .icon-opt.selected .icon { stroke: var(--accent); filter: drop-shadow(0 0 4px var(--accent)); }
+[data-theme="neon"] .icon-opt.selected .icon {
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 4px var(--accent));
+}
 
-/* Ícones em labels de seção em neon */
+/* Labels de seção em neon */
 [data-theme="neon"] .s-label .icon,
-[data-theme="neon"] .m-cat-title .icon { stroke: var(--accent); filter: drop-shadow(0 0 3px var(--accent)); }
+[data-theme="neon"] .m-cat-title .icon {
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 3px var(--accent));
+}
