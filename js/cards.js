@@ -14,7 +14,19 @@ let _editingCardId = null;
 function loadCards()     { return _cache.cards || []; }
 function saveCards(list) { _cache.cards = list; scheduleSync(); }
 
+// Retorna a fatura em aberto = compras no crédito - pagamentos já lançados
 function cardGastosMes(cardId, key) {
+  const k = key || mKey();
+  const exps = _cache.expenses[k] || [];
+  const compras = exps.filter(e => e.pay === 'credito' && e.cardId === cardId)
+                      .reduce((s, e) => s + e.valor, 0);
+  const pagamentos = exps.filter(e => e.faturaCardId === cardId)
+                         .reduce((s, e) => s + e.valor, 0);
+  return Math.max(0, compras - pagamentos);
+}
+
+// Retorna o total bruto de compras no crédito (sem descontar pagamentos)
+function cardComprasMes(cardId, key) {
   const exps = _cache.expenses[key || mKey()] || [];
   return exps.filter(e => e.pay === 'credito' && e.cardId === cardId)
              .reduce((s, e) => s + e.valor, 0);

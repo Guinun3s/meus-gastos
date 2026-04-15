@@ -123,15 +123,12 @@ function renderMobileExtras(receita, total, ct, saldoBanco, saldoDin) {
 
   // Cartões (compacto — só se tiver gasto)
   const cards = _cache.cards || [];
-  const allExps = _cache.expenses[mKey()] || [];
-  const cardsComGasto = cards.filter(c =>
-    allExps.some(e => e.pay === 'credito' && e.cardId === c.id)
-  );
+  const cardsComGasto = cards.filter(c => cardGastosMes(c.id) > 0);
   if (cardsComGasto.length) {
     html += `<div class="m-section-hdr"><span class="m-section-title">Cartões</span></div>`;
     html += `<div class="m-top-cats">`;
     cardsComGasto.forEach(c => {
-      const gasto  = allExps.filter(e => e.pay === 'credito' && e.cardId === c.id).reduce((s, e) => s + e.valor, 0);
+      const gasto  = cardGastosMes(c.id);
       const pct    = c.limit > 0 ? Math.min(100, Math.round(gasto / c.limit * 100)) : 0;
       const danger = pct >= 80;
       html += `<div class="m-top-cat-row">
@@ -213,11 +210,9 @@ function renderSidebar() {
   const scards = document.getElementById('sidebarCards');
   if (scards) {
     const cards = _cache.cards || [];
-    const allExpsS = _cache.expenses[mKey()] || [];
     if (cards.length) {
       scards.innerHTML = cards.map(c => {
-        const gasto  = allExpsS.filter(e => e.pay === 'credito' && e.cardId === c.id)
-                               .reduce((s, e) => s + e.valor, 0);
+        const gasto  = cardGastosMes(c.id);
         const pct    = c.limit > 0 ? Math.min(100, Math.round(gasto / c.limit * 100)) : 0;
         const danger = pct >= 80;
         const barColor = danger ? 'var(--red)' : c.color;

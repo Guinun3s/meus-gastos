@@ -213,11 +213,22 @@ function renderDowChart() {
 
   if (_dowChart) { _dowChart.destroy(); _dowChart = null; }
 
+  // Controla estado vazio via elemento irmão (sem destruir o canvas)
+  const parent = canvas.parentElement;
+  let emptyEl = parent.querySelector('.dow-empty');
   if (maxVal === 0) {
-    canvas.parentElement.innerHTML =
-      '<div class="empty" style="padding:32px">Sem dados suficientes ainda.</div>';
+    canvas.style.display = 'none';
+    if (!emptyEl) {
+      emptyEl = document.createElement('div');
+      emptyEl.className = 'empty dow-empty';
+      emptyEl.style.padding = '32px';
+      emptyEl.textContent = 'Sem dados suficientes ainda.';
+      parent.appendChild(emptyEl);
+    }
     return;
   }
+  if (emptyEl) emptyEl.remove();
+  canvas.style.display = '';
 
   _dowChart = new Chart(canvas, {
     type: 'bar',

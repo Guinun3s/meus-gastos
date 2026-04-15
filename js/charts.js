@@ -155,6 +155,7 @@ function renderCharts() {
   renderLineChart(list);
   renderPayChart(list);
   renderBarChart(ct, budgets);
+  if (typeof renderDowChart === 'function') renderDowChart();
 }
 
 
