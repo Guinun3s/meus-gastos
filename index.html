@@ -807,14 +807,12 @@
 
 <!-- Modal: importar CSV -->
 <div class="modal-bg d-only" id="modalImport">
-  <div class="modal">
-    <h3>Importar CSV</h3>
-    <p class="modal-p">Formato: data, descrição, categoria_id, pagamento, valor</p>
-    <textarea id="csvIn" placeholder="2024-01-15,Mercado Extra,mercado,pix,87.50"></textarea>
-    <div class="modal-actions">
-      <button class="btn-s" onclick="closeModal('modalImport')">Cancelar</button>
-      <button class="btn-p" onclick="importCSV()">Importar</button>
+  <div class="modal" style="max-width:960px;width:92vw">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="margin:0">Importar CSV</h3>
+      <button class="close-btn" onclick="closeModal('modalImport')" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer">✕</button>
     </div>
+    <div id="modalImportBody"></div>
   </div>
 </div>
 
@@ -1087,7 +1085,7 @@
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openExportM()">
       <span class="menu-icon"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Exportar CSV
     </button>
-    <button class="menu-item" onclick="closeSheet('sheetMenu'); openSheet('sheetImport')">
+    <button class="menu-item" onclick="closeSheet('sheetMenu'); openImportModal()">
       <span class="menu-icon"><svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span> Importar CSV
     </button>
     <button class="menu-item" onclick="closeSheet('sheetMenu'); openNotifSettings()">
@@ -1119,17 +1117,11 @@
 <div class="sheet-bg m-only" id="sheetImport">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Importar CSV</div>
-    <div class="csv-hint">
-      Formato: data, descrição, categoria_id, pagamento, valor<br>
-      Ex: 2024-01-15,Mercado Extra,mercado,pix,87.50
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="sheet-title" style="margin:0">Importar CSV</div>
+      <button onclick="closeSheet('sheetImport')" style="background:transparent;border:none;color:var(--text3);font-size:16px">✕</button>
     </div>
-    <textarea class="csv-area" id="mCsvIn"
-      placeholder="2024-01-15,Mercado Extra,mercado,pix,87.50"></textarea>
-    <div class="sheet-actions">
-      <button class="btn-sec" onclick="closeSheet('sheetImport')">Cancelar</button>
-      <button class="btn-pri" onclick="importCSV()">Importar</button>
-    </div>
+    <div id="sheetImportBody"></div>
   </div>
 </div>
 

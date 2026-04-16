@@ -1,7 +1,10 @@
 // ============================================================
 // js/csv.js — exportação e importação de dados em CSV
-// Formato: data, descrição, categoria_id, pagamento, valor
+// Importação com upload de arquivo, detecção automática de colunas,
+// classificação gasto/receita/investimento, detecção de duplicatas.
 // ============================================================
+
+// ── EXPORTAÇÃO ──────────────────────────────────────────────
 
 function buildCSV() {
   const rows = ['data,descricao,categoria,pagamento,valor'];
@@ -11,25 +14,19 @@ function buildCSV() {
   return rows.join('\n');
 }
 
-// Desktop
 function openExport() {
   document.getElementById('csvOut').value = buildCSV();
   openModal('modalExport');
 }
-
-// Mobile
 function openExportM() {
   document.getElementById('mCsvOut').value = buildCSV();
   openSheet('sheetExport');
 }
 
-function openImportModal() { openModal('modalImport'); }
-
 function downloadCSV(src) {
   const content = src === 'm'
     ? document.getElementById('mCsvOut').value
     : (document.getElementById('csvOut')?.value || '');
-
   const name = capitalize(mName()).replace(' de ', '_').replace(' ', '_');
   const a    = document.createElement('a');
   a.href     = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
@@ -37,47 +34,680 @@ function downloadCSV(src) {
   a.click();
 }
 
-function importCSV() {
-  const el  = document.getElementById('csvIn') || document.getElementById('mCsvIn');
-  const raw = el?.value.trim() || '';
-  if (!raw) return;
 
-  const lines = raw.split('\n').filter(l => l.trim() && !l.startsWith('data'));
-  const list  = loadExp();
-  let count   = 0;
+// ════════════════════════════════════════════════════════════
+// IMPORTAÇÃO
+// ════════════════════════════════════════════════════════════
 
-  lines.forEach(line => {
-    const parts = line
-      .match(/(\".*?\"|[^,]+)(?:,|$)/g)
-      ?.map(p => p.replace(/,$/, '').replace(/^\"|\"$/g, '').trim());
+let _importState = {
+  file: null,
+  rows: [],         // array de objetos com o raw parsing
+  headers: [],
+  mapping: {},      // { date: 'col0', desc: 'col1', credit: 'col3', debit: 'col4' }
+  preview: [],      // objetos normalizados { tipo, desc, cat, pay, valor, data, dup, checked }
+  lastDate: null,
+  filter: 'all',    // all | new | dup
+};
 
-    if (!parts || parts.length < 4) return;
+// ── Abertura do modal de importação (entry point) ────────────
+function openImportModal() {
+  if (isMobile()) openImportModalM();
+  else            openImportModalD();
+}
+function openImportModalD() {
+  _resetImportState();
+  _renderImportStep('upload');
+  openModal('modalImport');
+}
+function openImportModalM() {
+  _resetImportState();
+  _renderImportStep('upload');
+  openSheet('sheetImport');
+}
 
-    const [data, desc, cat, pay, valor] =
-      parts.length >= 5
-        ? parts
-        : [parts[0], parts[1], parts[2], 'outros', parts[3]];
+function _resetImportState() {
+  _importState = {
+    file: null, rows: [], headers: [],
+    mapping: {}, preview: [], lastDate: _findLastEntryDate(),
+    filter: 'all',
+  };
+}
 
-    const v = parseFloat(parts.length >= 5 ? valor : pay);
-    if (!isNaN(v) && v > 0 && desc) {
-      list.push({
-        id:    Date.now() + count,
-        desc,
-        valor: v,
-        cat:   cat || 'outros',
-        pay:   parts.length >= 5 ? (pay || 'outros') : 'outros',
-        data,
+// ── Encontra a data mais recente entre todos os tipos ────────
+function _findLastEntryDate() {
+  let latest = null;
+  const scan = obj => {
+    Object.values(obj || {}).forEach(list => {
+      (list || []).forEach(e => {
+        if (e.data && (!latest || e.data > latest)) latest = e.data;
       });
-      count++;
+    });
+  };
+  scan(_cache.expenses);
+  scan(_cache.incomes);
+  scan(_cache.investments);
+  return latest;
+}
+
+// ── Handler do input file ────────────────────────────────────
+function handleCSVFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  _importState.file = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    let text = e.target.result;
+    // Detecta encoding — se tiver caracteres de replacement, re-lê como Latin1
+    if (text.includes('\uFFFD')) {
+      const reader2 = new FileReader();
+      reader2.onload = e2 => _processCSVText(e2.target.result);
+      reader2.readAsText(file, 'ISO-8859-1');
+    } else {
+      _processCSVText(text);
     }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function _processCSVText(text) {
+  const { headers, rows, delim } = _parseCSV(text);
+  if (!headers.length || !rows.length) {
+    toast('Arquivo CSV vazio ou inválido.');
+    return;
+  }
+  _importState.headers = headers;
+  _importState.rows    = rows;
+  _importState.mapping = _autoDetectColumns(headers);
+  _buildPreview();
+
+  // Se não detectou data+descrição+valor, mostra o mapeamento
+  const m = _importState.mapping;
+  const hasMin = m.date !== undefined && m.desc !== undefined &&
+                 (m.valor !== undefined || m.credit !== undefined || m.debit !== undefined);
+  if (!hasMin) _renderImportStep('mapping');
+  else         _renderImportStep('preview');
+}
+
+// ── Parser CSV robusto ───────────────────────────────────────
+function _parseCSV(text) {
+  text = text.replace(/^\uFEFF/, ''); // remove BOM
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return { headers: [], rows: [], delim: ',' };
+
+  // Detecta separador (vírgula ou ponto-e-vírgula — padrão brasileiro)
+  const first = lines[0];
+  const commas = (first.match(/,/g) || []).length;
+  const semis  = (first.match(/;/g) || []).length;
+  const delim  = semis > commas ? ';' : ',';
+
+  const parseLine = line => {
+    const out = [];
+    let cur = '', inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (inQuote) {
+        if (c === '"' && line[i+1] === '"') { cur += '"'; i++; }
+        else if (c === '"') inQuote = false;
+        else cur += c;
+      } else {
+        if (c === '"') inQuote = true;
+        else if (c === delim) { out.push(cur); cur = ''; }
+        else cur += c;
+      }
+    }
+    out.push(cur);
+    return out.map(s => s.trim());
+  };
+
+  const headers = parseLine(lines[0]);
+  const rows = lines.slice(1).map(parseLine).filter(r => r.some(c => c));
+  return { headers, rows, delim };
+}
+
+// ── Detecção automática de colunas ───────────────────────────
+function _autoDetectColumns(headers) {
+  const m = {};
+  headers.forEach((h, i) => {
+    const lh = h.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos preservando letras
+      .replace(/[^a-z]/g, '');
+    if (m.date === undefined && /data|date|dt|lancamento|movimentacao/.test(lh)) m.date = i;
+    else if (m.desc === undefined && /desc|descricao|historico|memo|movimento|detalhe/.test(lh)) m.desc = i;
+    else if (m.credit === undefined && /credito|entrada|receita|crédit/.test(lh)) m.credit = i;
+    else if (m.debit === undefined && /debito|saida|despesa|débit/.test(lh)) m.debit = i;
+    else if (m.valor === undefined && /valor|value|amount|montante|quantia/.test(lh)) m.valor = i;
+    else if (m.tipo === undefined && /tipo|type/.test(lh)) m.tipo = i;
+  });
+  return m;
+}
+
+// ── Normalização de data (DD/MM/YYYY → YYYY-MM-DD, etc) ──────
+function _normalizeDate(s) {
+  if (!s) return '';
+  s = s.trim();
+  let m;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) {
+    return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  }
+  if ((m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/))) {
+    let y = m[3]; if (y.length === 2) y = '20' + y;
+    return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  }
+  return '';
+}
+
+// ── Normalização de valor (R$ 1.234,56 → 1234.56) ────────────
+function _normalizeValor(s) {
+  if (!s) return 0;
+  s = String(s).replace(/[R$\s]/gi, '').trim();
+  if (!s) return 0;
+  // Se tem vírgula E ponto: ponto é milhar, vírgula é decimal
+  if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '').replace(',', '.');
+  else if (s.includes(',')) s = s.replace(',', '.');
+  const v = parseFloat(s);
+  return isNaN(v) ? 0 : v;
+}
+
+// ── Detecção de investimento por palavras-chave ──────────────
+function _isInvestDescription(desc) {
+  const d = desc.toLowerCase();
+  // Usa limites de palavra para evitar falsos positivos (ex: "nETFlix" contendo "etf")
+  return /\b(aplica[cç][aã]o|resgate|cdb|tesouro|investimento|fundo|a[cç][oõ]es|b3|cripto|bitcoin|ethereum|etf|fii|poupan[cç]a|lci|lca|cdi)\b/i.test(d);
+}
+
+// ── Detecção de forma de pagamento pela descrição ────────────
+function _detectPayMethod(desc) {
+  const d = desc.toLowerCase();
+  if (/pix/.test(d))                                return 'pix';
+  if (/cart[aã]o.*cr[eé]dito|credito|cred\.?/i.test(d)) return 'credito';
+  if (/cart[aã]o.*d[eé]bito|debito|deb\.?/i.test(d))    return 'debito';
+  if (/boleto/.test(d))                             return 'boleto';
+  if (/transferencia|ted|doc/i.test(d))             return 'transferencia';
+  return 'pix'; // default razoável para extratos de banco
+}
+
+// ── Categorização por palavras-chave (heurística) ────────────
+function _guessCategory(desc) {
+  const d = desc.toLowerCase();
+  const rules = [
+    [/\b(uber|99|taxi|t[aá]xi|cabify)\b/i, 'uber'],
+    [/\b(onibus|metr[oô]|passagem|bilhete|brt|trem)\b/i, 'onibus'],
+    [/\b(ifood|rappi|burger|lanche|restaurante|pizzaria|hamburgu|delivery)\b/i, 'alimentacao'],
+    [/\b(mercado|supermercado|carrefour|extra|atacad|assai|bistek)\b|pao de a[cç]ucar/i, 'mercado'],
+    [/\b(netflix|spotify|disney|prime|hbo|deezer|apple\.com)\b|youtube premium/i, 'assinatura'],
+    [/\b(farmacia|droga|drogaria|medicam)\b/i, 'saude'],
+    [/\b(vivo|claro|tim|oi|internet|telefon)\b/i, 'internet'],
+    [/\b(luz|energia|enel|cemig|light|gas|sabesp|[aá]gua)\b/i, 'contas'],
+    [/\b(fatura)\b|boleto.*cart/i, 'divida'],
+    [/\b(curso|udemy|escola|faculdade|livro|educa)\b/i, 'educacao'],
+    [/\b(cinema|show|teatro|parque|balada)\b/i, 'lazer'],
+    [/\b(roupa|cal[cç]ado|tenis|sapato|camiseta|zara|renner)\b|c&a/i, 'vestuario'],
+    [/\b(salao|barbeiro|cabelo|manicure|esteti)\b/i, 'beleza'],
+    [/\b(amazon|mercadolivre|shopee|aliexpress|shein)\b|compra.*online/i, 'compra'],
+  ];
+  for (const [re, cat] of rules) if (re.test(d)) return cat;
+  return 'outros';
+}
+
+// ── Detecção de duplicatas (data + desc + valor) ─────────────
+function _isDuplicate(row) {
+  const norm = s => (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  const match = (e) => e.data === row.data &&
+                       norm(e.desc) === norm(row.desc) &&
+                       Math.abs(e.valor - row.valor) < 0.01;
+  const checkStore = store => Object.values(store || {})
+    .some(list => (list || []).some(match));
+  return checkStore(_cache.expenses) || checkStore(_cache.incomes) || checkStore(_cache.investments);
+}
+
+// ── Construção da preview a partir do state ──────────────────
+function _buildPreview() {
+  const m = _importState.mapping;
+  const preview = [];
+
+  _importState.rows.forEach((r, idx) => {
+    const dataRaw = m.date  !== undefined ? r[m.date]  : '';
+    const desc    = (m.desc !== undefined ? r[m.desc] : '').trim();
+    let valor = 0, tipo = 'gasto';
+
+    // Caso 1: colunas separadas de crédito e débito
+    if (m.credit !== undefined || m.debit !== undefined) {
+      const cred = m.credit !== undefined ? _normalizeValor(r[m.credit]) : 0;
+      const deb  = m.debit  !== undefined ? _normalizeValor(r[m.debit])  : 0;
+      if (cred > 0) { valor = cred; tipo = 'receita'; }
+      else if (deb > 0) { valor = deb; tipo = 'gasto'; }
+    }
+    // Caso 2: coluna única de valor (positivo/negativo)
+    else if (m.valor !== undefined) {
+      const v = _normalizeValor(r[m.valor]);
+      if (v < 0) { valor = Math.abs(v); tipo = 'gasto'; }
+      else       { valor = v;            tipo = 'receita'; }
+    }
+
+    const data = _normalizeDate(dataRaw);
+    if (!data || !desc || valor <= 0) return;
+
+    // Reclassifica como investimento se a descrição sugerir
+    if (_isInvestDescription(desc)) tipo = 'investimento';
+
+    const item = {
+      idx,
+      data,
+      desc,
+      valor,
+      tipo,
+      cat: tipo === 'gasto' ? _guessCategory(desc) : (tipo === 'investimento' ? 'investimento' : 'outros'),
+      pay: tipo === 'gasto' ? _detectPayMethod(desc) : (tipo === 'receita' ? 'banco' : 'rendafixa'),
+      checked: true,
+      dup: false,
+    };
+    item.dup = _isDuplicate(item);
+    if (item.dup) item.checked = false;
+    preview.push(item);
   });
 
-  list.sort((a, b) => b.data.localeCompare(a.data));
-  saveExp(list);
+  _importState.preview = preview;
+}
 
-  if (document.getElementById('csvIn'))  { document.getElementById('csvIn').value  = ''; closeModal('modalImport'); }
-  if (document.getElementById('mCsvIn')) { document.getElementById('mCsvIn').value = ''; closeSheet('sheetImport'); }
+// ── Roteador de views (upload / mapping / preview) ────────────
+function _renderImportStep(step) {
+  const isMob = isMobile();
+  const containerId = isMob ? 'sheetImportBody' : 'modalImportBody';
+  const el = document.getElementById(containerId);
+  if (!el) return;
 
+  if (step === 'upload')       el.innerHTML = _htmlUploadStep();
+  else if (step === 'mapping') el.innerHTML = _htmlMappingStep();
+  else if (step === 'preview') el.innerHTML = _htmlPreviewStep();
+}
+
+// ── View: upload ─────────────────────────────────────────────
+function _htmlUploadStep() {
+  const last = _importState.lastDate;
+  const lastStr = last ? fmtDate(last) + '/' + last.slice(0, 4) : null;
+  return `
+    ${last ? `
+      <div class="imp-warn">
+        <span>⚠</span>
+        <div>Seu último lançamento foi em <strong>${lastStr}</strong>.
+        Importe apenas movimentações posteriores a essa data para evitar duplicatas.</div>
+      </div>` : ''}
+    <div class="imp-dropzone" onclick="document.getElementById('impFileInput').click()">
+      <div class="imp-dz-icon">${typeof icon==='function' ? icon('upload') : '⬆'}</div>
+      <div class="imp-dz-title">${isMobile() ? 'Toque para selecionar' : 'Clique ou arraste o CSV aqui'}</div>
+      <div class="imp-dz-sub">Extrato exportado do seu banco (.csv)</div>
+      <button class="btn-p" type="button" onclick="event.stopPropagation();document.getElementById('impFileInput').click()">Escolher arquivo</button>
+      <input type="file" id="impFileInput" accept=".csv,text/csv" style="display:none" onchange="handleCSVFile(this)">
+    </div>`;
+}
+
+// ── View: mapeamento manual ──────────────────────────────────
+function _htmlMappingStep() {
+  const headers = _importState.headers;
+  const m = _importState.mapping;
+  const opts = (sel) => {
+    let h = '<option value="">— Ignorar —</option>';
+    headers.forEach((col, i) => {
+      h += `<option value="${i}" ${m[sel]==i?'selected':''}>${col || 'Coluna '+(i+1)}</option>`;
+    });
+    return h;
+  };
+  return `
+    <p class="imp-hint">Identifique as colunas do arquivo para o app poder importar corretamente.</p>
+    <div class="imp-map">
+      <label>Data <select onchange="_mapSet('date',this.value)">${opts('date')}</select></label>
+      <label>Descrição <select onchange="_mapSet('desc',this.value)">${opts('desc')}</select></label>
+      <label>Valor (se único) <select onchange="_mapSet('valor',this.value)">${opts('valor')}</select></label>
+      <label>Crédito / entrada <select onchange="_mapSet('credit',this.value)">${opts('credit')}</select></label>
+      <label>Débito / saída <select onchange="_mapSet('debit',this.value)">${opts('debit')}</select></label>
+    </div>
+    <div class="imp-actions">
+      <button class="btn-s" onclick="_renderImportStep('upload')">Voltar</button>
+      <button class="btn-p" onclick="_confirmMapping()">Continuar →</button>
+    </div>`;
+}
+
+function _mapSet(key, val) {
+  if (val === '') delete _importState.mapping[key];
+  else _importState.mapping[key] = parseInt(val);
+}
+
+function _confirmMapping() {
+  const m = _importState.mapping;
+  if (m.date === undefined || m.desc === undefined) {
+    toast('Selecione pelo menos as colunas de data e descrição.');
+    return;
+  }
+  if (m.valor === undefined && m.credit === undefined && m.debit === undefined) {
+    toast('Selecione uma coluna de valor (ou crédito/débito).');
+    return;
+  }
+  _buildPreview();
+  _renderImportStep('preview');
+}
+
+// ── View: preview ────────────────────────────────────────────
+function _htmlPreviewStep() {
+  const pv = _importState.preview;
+  const total = pv.length;
+  const news  = pv.filter(p => !p.dup).length;
+  const dups  = total - news;
+
+  const filter = _importState.filter;
+  const visible = pv.filter(p => filter === 'all' || (filter === 'new' && !p.dup) || (filter === 'dup' && p.dup));
+
+  const sumG = pv.filter(p => p.checked && p.tipo === 'gasto').reduce((s,p) => s + p.valor, 0);
+  const sumR = pv.filter(p => p.checked && p.tipo === 'receita').reduce((s,p) => s + p.valor, 0);
+  const sumI = pv.filter(p => p.checked && p.tipo === 'investimento').reduce((s,p) => s + p.valor, 0);
+  const sel  = pv.filter(p => p.checked).length;
+
+  const summary = `${sel} selecionados`
+    + (sumG > 0 ? ` · <span style="color:var(--red)">−${fmt(sumG)}</span>` : '')
+    + (sumR > 0 ? ` · <span style="color:var(--accent)">+${fmt(sumR)}</span>` : '')
+    + (sumI > 0 ? ` · <span style="color:var(--amber)">${fmt(sumI)}</span>` : '');
+
+  const isMob = isMobile();
+
+  return `
+    <div class="imp-banner ${dups > 0 ? 'ok' : 'ok'}">
+      <strong style="color:var(--accent)">${news} novos</strong>
+      ${dups > 0 ? ` · <span style="color:var(--purple)">${dups} duplicatas</span> desmarcadas automaticamente` : ''}
+    </div>
+    <div class="imp-chips">
+      <span class="imp-chip ${filter==='all'?'active':''}" onclick="_setImpFilter('all')">Todos · ${total}</span>
+      <span class="imp-chip ${filter==='new'?'active':''}" onclick="_setImpFilter('new')">Só novos · ${news}</span>
+      <span class="imp-chip ${filter==='dup'?'active':''}" onclick="_setImpFilter('dup')">Duplicatas · ${dups}</span>
+      <span style="flex:1"></span>
+      <select class="imp-bulk" onchange="_bulkPay(this.value);this.value=''">
+        <option value="">Pagamento em massa…</option>
+        <option value="dinheiro">Dinheiro</option>
+        <option value="debito">Débito</option>
+        <option value="credito">Crédito</option>
+        <option value="pix">Pix</option>
+        <option value="boleto">Boleto</option>
+        <option value="transferencia">Transferência</option>
+      </select>
+    </div>
+    ${isMob ? _htmlPreviewCards(visible) : _htmlPreviewTable(visible)}
+    <div class="imp-footer">
+      <div class="imp-summary">${summary}</div>
+      <div class="imp-actions">
+        <button class="btn-s" onclick="_renderImportStep('upload')">Cancelar</button>
+        <button class="btn-p" onclick="_doImport()">Importar ${sel}</button>
+      </div>
+    </div>
+    <div id="impPopover"></div>
+  `;
+}
+
+// ── Tabela desktop ───────────────────────────────────────────
+function _htmlPreviewTable(rows) {
+  return `
+    <table class="imp-table">
+      <thead>
+        <tr>
+          <th style="width:28px;text-align:center">
+            <input type="checkbox" ${rows.every(r => r.checked) ? 'checked' : ''} onchange="_toggleAll(this.checked)">
+          </th>
+          <th>Descrição</th>
+          <th style="width:200px">Categoria</th>
+          <th style="width:140px">Pagamento</th>
+          <th style="width:70px">Data</th>
+          <th class="r" style="width:110px">Valor</th>
+          <th style="width:60px;text-align:center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => _htmlPreviewRow(r)).join('')}
+      </tbody>
+    </table>`;
+}
+
+function _htmlPreviewRow(r) {
+  const cat = catById(r.cat);
+  const { label, color } = _payInfo(r);
+  return `
+    <tr class="imp-row ${r.dup?'dup':''}" data-idx="${r.idx}">
+      <td style="text-align:center"><input type="checkbox" ${r.checked?'checked':''} onchange="_toggleRow(${r.idx},this.checked)"></td>
+      <td class="imp-desc">${r.desc}${r.dup ? ' <span class="imp-dup-tag">já existe</span>' : ''}</td>
+      <td>${_catPillInline(r, cat)}</td>
+      <td>${_payPillInline(r, label, color)}</td>
+      <td class="imp-date">${fmtDate(r.data)}</td>
+      <td class="imp-val" style="color:${_valColor(r.tipo)}">${_valPrefix(r.tipo)}${fmt(r.valor)}</td>
+      <td style="text-align:center">
+        <div class="imp-acts">
+          <button onclick="_editRow(${r.idx})" title="Editar">${typeof icon==='function'?icon('pencil','icon-sm'):'✎'}</button>
+          <button onclick="_removeRow(${r.idx})" title="Remover">${typeof icon==='function'?icon('x','icon-sm'):'✕'}</button>
+        </div>
+      </td>
+    </tr>`;
+}
+
+// ── Cards mobile ─────────────────────────────────────────────
+function _htmlPreviewCards(rows) {
+  return `<div class="imp-cards">${rows.map(r => {
+    const cat = catById(r.cat);
+    const { label, color } = _payInfo(r);
+    return `
+      <div class="imp-card ${r.dup?'dup':''}" data-idx="${r.idx}">
+        <div class="imp-card-head">
+          <input type="checkbox" class="imp-chk" ${r.checked?'checked':''} onchange="_toggleRow(${r.idx},this.checked)">
+          <div class="imp-card-body">
+            <div class="imp-card-desc">${r.desc}${r.dup ? ' <span class="imp-dup-tag">já existe</span>' : ''}</div>
+            <div class="imp-card-pills">
+              ${_catPillInline(r, cat)}
+              ${_payPillInline(r, label, color)}
+            </div>
+          </div>
+          <div class="imp-card-val" style="color:${_valColor(r.tipo)}">${_valPrefix(r.tipo)}${fmt(r.valor)}</div>
+        </div>
+        <div class="imp-card-foot">
+          <span class="imp-card-date">${fmtDate(r.data)}</span>
+          <div class="imp-acts">
+            <button onclick="_editRow(${r.idx})">${typeof icon==='function'?icon('pencil','icon-sm'):'✎'}</button>
+            <button onclick="_removeRow(${r.idx})">${typeof icon==='function'?icon('x','icon-sm'):'✕'}</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Helpers visuais ──────────────────────────────────────────
+function _valColor(tipo) {
+  return tipo === 'gasto' ? 'var(--red)' : tipo === 'receita' ? 'var(--accent)' : 'var(--amber)';
+}
+function _valPrefix(tipo) {
+  return tipo === 'gasto' ? '−' : tipo === 'receita' ? '+' : '';
+}
+function _payInfo(r) {
+  if (r.tipo === 'receita') {
+    const c = r.pay === 'dinheiro' ? '#40d090' : '#60b0ff';
+    return { label: r.pay === 'dinheiro' ? 'Dinheiro' : 'Banco', color: c };
+  }
+  if (r.tipo === 'investimento') {
+    return {
+      label: (typeof INV_TIPO_LABELS !== 'undefined' && INV_TIPO_LABELS[r.pay]) || r.pay,
+      color: (typeof INV_TIPO_COLORS !== 'undefined' && INV_TIPO_COLORS[r.pay]) || '#8888a0',
+    };
+  }
+  return { label: PAY_LABELS[r.pay] || r.pay, color: PAY_COLORS[r.pay] || '#888' };
+}
+function _catPillInline(r, cat) {
+  if (r.tipo === 'receita') {
+    return `<span class="e-pill imp-pill" data-kind="tipo" data-idx="${r.idx}" onclick="_openPopover(event, ${r.idx}, 'tipo')" style="background:#60a8f01a;color:#60a8f0"><span class="pdot" style="background:#60a8f0"></span>Receita</span>`;
+  }
+  if (r.tipo === 'investimento') {
+    return `<span class="e-pill imp-pill" data-kind="tipo" data-idx="${r.idx}" onclick="_openPopover(event, ${r.idx}, 'tipo')" style="background:#f0b8601a;color:#f0b860"><span class="pdot" style="background:#f0b860"></span>Investimento</span>`;
+  }
+  return `<span class="e-pill imp-pill" data-kind="cat" data-idx="${r.idx}" onclick="_openPopover(event, ${r.idx}, 'cat')" style="background:${cat.color}1a;color:${cat.color}"><span class="pdot" style="background:${cat.color}"></span>${cat.name}</span>`;
+}
+function _payPillInline(r, label, color) {
+  return `<span class="e-pill imp-pill" data-kind="pay" data-idx="${r.idx}" onclick="_openPopover(event, ${r.idx}, 'pay')" style="background:${color}1a;color:${color}"><span class="pdot" style="background:${color}"></span>${label}</span>`;
+}
+
+// ── Popover (edição inline dos pills) ────────────────────────
+function _openPopover(evt, idx, kind) {
+  evt.stopPropagation();
+  const row = _importState.preview.find(p => p.idx === idx);
+  if (!row) return;
+  const host = document.getElementById('impPopover');
+  if (!host) return;
+  const rect = evt.currentTarget.getBoundingClientRect();
+  const scrollY = window.scrollY, scrollX = window.scrollX;
+
+  let opts = [];
+  if (kind === 'cat') {
+    opts = CATS.map(c => ({ val: c.id, label: c.name, color: c.color, sel: c.id === row.cat }));
+  } else if (kind === 'tipo') {
+    opts = [
+      { val: 'gasto',         label: 'Gasto',         color: '#f06060', sel: row.tipo === 'gasto' },
+      { val: 'receita',       label: 'Receita',       color: '#60a8f0', sel: row.tipo === 'receita' },
+      { val: 'investimento',  label: 'Investimento',  color: '#f0b860', sel: row.tipo === 'investimento' },
+    ];
+  } else if (kind === 'pay') {
+    if (row.tipo === 'receita') {
+      opts = [
+        { val: 'banco',    label: 'Banco',    color: '#60b0ff', sel: row.pay === 'banco' },
+        { val: 'dinheiro', label: 'Dinheiro', color: '#40d090', sel: row.pay === 'dinheiro' },
+      ];
+    } else if (row.tipo === 'investimento') {
+      opts = Object.keys(INV_TIPO_LABELS || {}).map(k => ({
+        val: k, label: INV_TIPO_LABELS[k], color: INV_TIPO_COLORS[k], sel: row.pay === k,
+      }));
+    } else {
+      opts = Object.keys(PAY_LABELS).map(k => ({
+        val: k, label: PAY_LABELS[k], color: PAY_COLORS[k], sel: row.pay === k,
+      }));
+    }
+  }
+
+  host.innerHTML = `<div class="imp-popover" style="left:${rect.left+scrollX}px;top:${rect.bottom+scrollY+4}px">
+    ${opts.map(o => `<div class="imp-pop-opt ${o.sel?'selected':''}" onclick="_pickOpt(${idx},'${kind}','${o.val}')">
+      <span class="pdot" style="background:${o.color}"></span>${o.label}${o.sel?' ✓':''}
+    </div>`).join('')}
+  </div>`;
+
+  // Click fora fecha
+  setTimeout(() => document.addEventListener('click', _closePopover, { once: true }), 0);
+}
+function _closePopover() {
+  const host = document.getElementById('impPopover');
+  if (host) host.innerHTML = '';
+}
+
+function _pickOpt(idx, kind, val) {
+  const row = _importState.preview.find(p => p.idx === idx);
+  if (!row) return;
+  if (kind === 'cat') row.cat = val;
+  else if (kind === 'pay') row.pay = val;
+  else if (kind === 'tipo') {
+    row.tipo = val;
+    // Ajusta pay e cat defaults para o novo tipo
+    if (val === 'receita')             row.pay = 'banco';
+    else if (val === 'investimento')   { row.pay = 'rendafixa'; row.cat = 'investimento'; }
+    else if (val === 'gasto')          row.pay = _detectPayMethod(row.desc);
+  }
+  _closePopover();
+  _renderImportStep('preview');
+}
+
+// ── Ações de linha ───────────────────────────────────────────
+function _toggleRow(idx, checked) {
+  const r = _importState.preview.find(p => p.idx === idx);
+  if (r) r.checked = checked;
+  _renderImportStep('preview');
+}
+function _toggleAll(checked) {
+  _importState.preview.forEach(p => p.checked = checked);
+  _renderImportStep('preview');
+}
+function _removeRow(idx) {
+  _importState.preview = _importState.preview.filter(p => p.idx !== idx);
+  _renderImportStep('preview');
+}
+function _setImpFilter(f) {
+  _importState.filter = f;
+  _renderImportStep('preview');
+}
+function _bulkPay(pay) {
+  if (!pay) return;
+  _importState.preview.forEach(p => {
+    if (p.tipo === 'gasto') p.pay = pay;
+  });
+  _renderImportStep('preview');
+}
+
+// ── Edição completa (descrição/data/valor) — modal simples ───
+function _editRow(idx) {
+  const r = _importState.preview.find(p => p.idx === idx);
+  if (!r) return;
+  const desc  = prompt('Descrição:', r.desc);
+  if (desc === null) return;
+  const data  = prompt('Data (YYYY-MM-DD):', r.data);
+  if (data === null) return;
+  const valor = prompt('Valor:', r.valor.toFixed(2));
+  if (valor === null) return;
+
+  r.desc = desc.trim() || r.desc;
+  const d = _normalizeDate(data) || data;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) r.data = d;
+  const v = _normalizeValor(valor);
+  if (v > 0) r.valor = v;
+  r.dup = _isDuplicate(r);
+  _renderImportStep('preview');
+}
+
+// ── Execução final da importação ─────────────────────────────
+function _doImport() {
+  const selected = _importState.preview.filter(p => p.checked);
+  if (!selected.length) { toast('Nenhum lançamento selecionado.'); return; }
+
+  // Garante containers
+  _cache.expenses    = _cache.expenses    || {};
+  _cache.incomes     = _cache.incomes     || {};
+  _cache.investments = _cache.investments || {};
+
+  let count = 0;
+  selected.forEach((r, i) => {
+    const key = _monthKeyFromDate(r.data);
+    const id  = Date.now() + i;
+
+    if (r.tipo === 'gasto') {
+      const list = _cache.expenses[key] || [];
+      list.push({ id, desc: r.desc, valor: r.valor, cat: r.cat, pay: r.pay, data: r.data });
+      _cache.expenses[key] = list;
+    } else if (r.tipo === 'receita') {
+      const list = _cache.incomes[key] || [];
+      list.push({ id, desc: r.desc, valor: r.valor, tipo: r.pay, data: r.data });
+      _cache.incomes[key] = list;
+    } else if (r.tipo === 'investimento') {
+      const list = _cache.investments[key] || [];
+      list.push({ id, desc: r.desc, valor: r.valor, tipo: r.pay, data: r.data });
+      _cache.investments[key] = list;
+    }
+    count++;
+  });
+
+  // Ordena cada mês por data desc
+  ['expenses','incomes','investments'].forEach(storeName => {
+    Object.keys(_cache[storeName]).forEach(k => {
+      _cache[storeName][k].sort((a, b) => (b.data||'').localeCompare(a.data||''));
+    });
+  });
+
+  if (typeof scheduleSync === 'function') scheduleSync();
+  if (isMobile()) closeSheet('sheetImport');
+  else            closeModal('modalImport');
   render();
   toast(count + ' lançamento(s) importado(s)!');
 }
+
+// ── Calcula a chave YYYY_M a partir de YYYY-MM-DD ────────────
+function _monthKeyFromDate(isoDate) {
+  const [y, m] = isoDate.split('-');
+  return `${parseInt(y)}_${parseInt(m)-1}`;
+}
+
+// ── Compat legado: função antiga (caso algum link ainda chame) ─
+function importCSV() { openImportModal(); }

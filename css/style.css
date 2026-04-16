@@ -2665,3 +2665,190 @@ h3 .icon { width: 18px; height: 18px; vertical-align: -0.25em; }
   stroke: var(--accent);
   filter: drop-shadow(0 0 3px var(--accent));
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Importação CSV — upload, mapeamento, preview
+   ═══════════════════════════════════════════════════════════ */
+
+.imp-warn {
+  background: rgba(240, 184, 96, 0.08);
+  border: 1px solid rgba(240, 184, 96, 0.3);
+  color: var(--text2);
+  padding: 10px 14px; border-radius: 6px;
+  font-size: 12px; margin-bottom: 14px;
+  display: flex; gap: 8px; line-height: 1.5;
+}
+.imp-warn strong { color: var(--amber); }
+
+.imp-banner {
+  background: rgba(200,240,96,0.06);
+  border: 1px solid rgba(200,240,96,0.25);
+  padding: 10px 14px; border-radius: 6px;
+  font-size: 12px; margin-bottom: 12px; color: var(--text2);
+}
+
+.imp-hint {
+  font-size: 12px; color: var(--text3); margin-bottom: 14px; line-height: 1.6;
+}
+
+.imp-dropzone {
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  padding: 40px 20px; text-align: center;
+  background: var(--bg); cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.imp-dropzone:hover { border-color: var(--accent); background: rgba(200,240,96,0.03); }
+.imp-dz-icon { color: var(--text3); margin-bottom: 10px; display:flex;justify-content:center; }
+.imp-dz-icon .icon { width: 32px; height: 32px; }
+.imp-dz-title { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+.imp-dz-sub { font-size: 11px; color: var(--text3); margin-bottom: 14px; }
+
+.imp-map {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  margin-bottom: 16px;
+}
+.imp-map label {
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 11px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.imp-map select {
+  background: var(--bg); border: 1px solid var(--line);
+  color: var(--text); padding: 8px 10px; border-radius: 4px;
+  font-family: var(--mono); font-size: 12px;
+}
+
+.imp-chips {
+  display: flex; gap: 8px; align-items: center;
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.imp-chip {
+  padding: 4px 12px; border-radius: 12px;
+  font-size: 11px; background: var(--bg3); color: var(--text2);
+  cursor: pointer;
+}
+.imp-chip.active { background: var(--accent); color: #000; font-weight: 600; }
+.imp-bulk {
+  background: var(--bg); border: 1px solid var(--line);
+  color: var(--text2); padding: 5px 10px; border-radius: 4px;
+  font-family: var(--mono); font-size: 11px;
+}
+
+/* ——— Tabela desktop ——— */
+.imp-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12px; margin-bottom: 12px;
+}
+.imp-table th {
+  font-size: 10px; color: var(--text3); font-weight: 400;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  padding: 10px 12px; text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.imp-table th.r { text-align: right; }
+.imp-table td {
+  padding: 12px; border-bottom: 1px solid rgba(42,42,46,0.5);
+  vertical-align: middle;
+}
+.imp-table tr:hover td { background: rgba(255,255,255,0.015); }
+.imp-table tr.dup td { opacity: 0.45; }
+.imp-desc { color: var(--text); max-width: 260px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.imp-date { color: var(--text3); font-size: 11px; }
+.imp-val { text-align: right; font-weight: 600; font-family: var(--mono); }
+
+.imp-dup-tag {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--purple, #a888f0); background: rgba(168,136,240,0.1);
+  padding: 2px 6px; border-radius: 4px; margin-left: 6px;
+}
+
+/* Pills inline (editáveis) */
+.e-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 12px;
+  font-size: 11px; font-family: var(--mono);
+  border: 1px solid transparent;
+}
+.e-pill .pdot {
+  width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+}
+.imp-pill { cursor: pointer; transition: border-color 0.15s; }
+.imp-pill:hover { border-color: currentColor; }
+.imp-pill::after {
+  content: '▾'; margin-left: 2px; opacity: 0.5; font-size: 9px;
+}
+
+/* Ações */
+.imp-acts { display: inline-flex; gap: 4px; }
+.imp-acts button {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text3); padding: 4px; border-radius: 3px;
+}
+.imp-acts button:hover { color: var(--text); background: var(--bg3); }
+
+/* Rodapé */
+.imp-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 14px; padding-top: 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; flex-wrap: wrap;
+}
+.imp-summary { font-size: 11px; color: var(--text3); }
+.imp-actions { display: flex; gap: 8px; }
+
+/* Popover */
+.imp-popover {
+  position: absolute; z-index: 9999;
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 6px; padding: 5px;
+  min-width: 180px; max-height: 320px; overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.imp-pop-opt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 4px;
+  font-size: 12px; color: var(--text2); cursor: pointer;
+}
+.imp-pop-opt:hover { background: var(--bg3); color: var(--text); }
+.imp-pop-opt.selected { background: var(--bg3); color: var(--text); }
+.imp-pop-opt .pdot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ——— Cards mobile ——— */
+.imp-cards {
+  max-height: 52vh; overflow-y: auto;
+  margin-bottom: 12px;
+}
+.imp-card {
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px; margin-bottom: 8px;
+  position: relative;
+}
+.imp-card.dup { opacity: 0.55; }
+.imp-card-head { display: flex; align-items: flex-start; gap: 10px; }
+.imp-chk { margin-top: 2px; flex-shrink: 0; }
+.imp-card-body { flex: 1; min-width: 0; }
+.imp-card-desc {
+  font-size: 13px; color: var(--text); font-weight: 500;
+  margin-bottom: 6px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.imp-card-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.imp-card-val {
+  font-size: 14px; font-weight: 600;
+  font-family: var(--mono); text-align: right; flex-shrink: 0;
+}
+.imp-card-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 10px; padding-top: 8px;
+  border-top: 1px solid rgba(42,42,46,0.5);
+}
+.imp-card-date { font-size: 11px; color: var(--text3); }
+
+@media (max-width: 600px) {
+  .imp-map { grid-template-columns: 1fr; }
+  .imp-chips { overflow-x: auto; flex-wrap: nowrap; }
+  .imp-chip { white-space: nowrap; }
+  .imp-bulk { display: none; }
+}
