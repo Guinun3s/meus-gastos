@@ -123,8 +123,9 @@ function _processCSVText(text) {
 
   // Se não detectou data+descrição+valor, mostra o mapeamento
   const m = _importState.mapping;
-  const hasMin = m.date !== undefined && m.desc !== undefined &&
-                 (m.valor !== undefined || m.credit !== undefined || m.debit !== undefined);
+  const hasDesc = m.desc !== undefined || m.historico !== undefined;
+  const hasVal  = m.valor !== undefined || m.credit !== undefined || m.debit !== undefined;
+  const hasMin  = m.date !== undefined && hasDesc && hasVal;
   if (!hasMin) _renderImportStep('mapping');
   else         _renderImportStep('preview');
 }
@@ -135,11 +136,14 @@ function _parseCSV(text) {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (!lines.length) return { headers: [], rows: [], delim: ',' };
 
-  // Detecta separador (vírgula ou ponto-e-vírgula — padrão brasileiro)
-  const first = lines[0];
-  const commas = (first.match(/,/g) || []).length;
-  const semis  = (first.match(/;/g) || []).length;
-  const delim  = semis > commas ? ';' : ',';
+  // ── Detecção de delimitador: conta nas primeiras 20 linhas ───
+  let totalCommas = 0, totalSemis = 0;
+  const scan = lines.slice(0, Math.min(20, lines.length));
+  scan.forEach(l => {
+    totalCommas += (l.match(/,/g) || []).length;
+    totalSemis  += (l.match(/;/g) || []).length;
+  });
+  const delim = totalSemis >= totalCommas ? ';' : ',';
 
   const parseLine = line => {
     const out = [];
@@ -160,8 +164,25 @@ function _parseCSV(text) {
     return out.map(s => s.trim());
   };
 
-  const headers = parseLine(lines[0]);
-  const rows = lines.slice(1).map(parseLine).filter(r => r.some(c => c));
+  // ── Procura a linha de header real: primeira linha "cheia"
+  // (≥2 delimitadores) que contenha pelo menos um keyword conhecido
+  const normalize = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const keywordRe = /(data|hist[oó]rico|descri[cç][aã]o|valor|credito|débito|debito|montante|lan[cç]amento|movimenta)/i;
+
+  let headerIdx = 0;
+  for (let i = 0; i < scan.length; i++) {
+    const cells = parseLine(scan[i]);
+    if (cells.length >= 2) {
+      const hasKeyword = cells.some(c => keywordRe.test(normalize(c)));
+      const hasMultipleCols = cells.length >= 3;
+      if (hasKeyword && hasMultipleCols) { headerIdx = i; break; }
+    }
+  }
+
+  const headers = parseLine(lines[headerIdx]);
+  const rows = lines.slice(headerIdx + 1)
+    .map(parseLine)
+    .filter(r => r.length === headers.length && r.some(c => c));
   return { headers, rows, delim };
 }
 
@@ -173,12 +194,18 @@ function _autoDetectColumns(headers) {
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos preservando letras
       .replace(/[^a-z]/g, '');
     if (m.date === undefined && /data|date|dt|lancamento|movimentacao/.test(lh)) m.date = i;
-    else if (m.desc === undefined && /desc|descricao|historico|memo|movimento|detalhe/.test(lh)) m.desc = i;
+    // Histórico: coluna primária de descrição — contém tipo da operação (Pix enviado, Compra no débito…)
+    else if (m.historico === undefined && /historico/.test(lh)) m.historico = i;
+    // Descrição: coluna secundária — contém nome do destinatário/estabelecimento
+    else if (m.desc === undefined && /desc|descricao|memo|movimento|detalhe/.test(lh)) m.desc = i;
     else if (m.credit === undefined && /credito|entrada|receita|crédit/.test(lh)) m.credit = i;
     else if (m.debit === undefined && /debito|saida|despesa|débit/.test(lh)) m.debit = i;
     else if (m.valor === undefined && /valor|value|amount|montante|quantia/.test(lh)) m.valor = i;
     else if (m.tipo === undefined && /tipo|type/.test(lh)) m.tipo = i;
+    // Ignora coluna "Saldo" — não precisamos dela
   });
+  // Se tem historico mas não desc, usa historico como desc
+  if (m.historico !== undefined && m.desc === undefined) m.desc = m.historico;
   return m;
 }
 
@@ -227,13 +254,60 @@ function _detectPayMethod(desc) {
   return 'pix'; // default razoável para extratos de banco
 }
 
+// ── Classificação baseada no campo Histórico (bancos brasileiros) ──
+// Retorna { tipo, pay } ou null se não reconhecer
+function _detectFromHistorico(hist) {
+  if (!hist) return null;
+  const h = hist.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  // Pix devolvido = receita (dinheiro voltou)
+  if (/pix enviado devolvido/.test(h))   return { tipo: 'receita', pay: 'banco' };
+  // Pix enviado = gasto
+  if (/pix enviado/.test(h))             return { tipo: 'gasto', pay: 'pix' };
+  // Pix recebido = receita
+  if (/pix recebido/.test(h))            return { tipo: 'receita', pay: 'banco' };
+
+  // Compra no débito / crédito
+  if (/compra.*debito/.test(h))          return { tipo: 'gasto', pay: 'debito' };
+  if (/compra.*credito/.test(h))         return { tipo: 'gasto', pay: 'credito' };
+
+  // Pagamento efetuado (fatura, boleto, etc)
+  if (/pagamento efetuado/.test(h))      return { tipo: 'gasto', pay: 'debito' };
+  if (/pagamento.*boleto/.test(h))       return { tipo: 'gasto', pay: 'boleto' };
+
+  // Aplicação = investimento (valor será ajustado para positivo)
+  if (/aplicacao|aplicac[aã]o/.test(h))  return { tipo: 'investimento', pay: 'rendafixa' };
+  // Resgate de investimento = receita
+  if (/resgate/.test(h))                 return { tipo: 'receita', pay: 'banco' };
+
+  // Crédito Evento B3 / Rendimento / Provento / Dividendo = receita
+  if (/credito evento b3|rendimento|provento|dividendo/.test(h)) return { tipo: 'receita', pay: 'banco' };
+
+  // TED/DOC recebido = receita
+  if (/ted recebido|doc recebido|transferencia recebid/.test(h)) return { tipo: 'receita', pay: 'banco' };
+  // TED/DOC enviado = gasto
+  if (/ted enviado|doc enviado|transferencia enviad/.test(h))    return { tipo: 'gasto', pay: 'transferencia' };
+
+  // Boleto pago
+  if (/boleto/.test(h))                  return { tipo: 'gasto', pay: 'boleto' };
+
+  // Débito automático
+  if (/debito automatico/.test(h))       return { tipo: 'gasto', pay: 'debito' };
+
+  // Saque / Depósito
+  if (/saque/.test(h))                   return { tipo: 'gasto', pay: 'dinheiro' };
+  if (/deposito/.test(h))               return { tipo: 'receita', pay: 'dinheiro' };
+
+  return null;
+}
+
 // ── Categorização por palavras-chave (heurística) ────────────
 function _guessCategory(desc) {
   const d = desc.toLowerCase();
   const rules = [
     [/\b(uber|99|taxi|t[aá]xi|cabify)\b/i, 'uber'],
-    [/\b(onibus|metr[oô]|passagem|bilhete|brt|trem)\b/i, 'onibus'],
-    [/\b(ifood|rappi|burger|lanche|restaurante|pizzaria|hamburgu|delivery)\b/i, 'alimentacao'],
+    [/\b(onibus|metr[oô]|passagem|bilhete|brt|trem)\b|transporte coletivo/i, 'onibus'],
+    [/\b(ifood|rappi|burger|lanche|restaurante|pizzaria|hamburgu|delivery|pastel|padaria|sorvet)\b/i, 'alimentacao'],
     [/\b(mercado|supermercado|carrefour|extra|atacad|assai|bistek)\b|pao de a[cç]ucar/i, 'mercado'],
     [/\b(netflix|spotify|disney|prime|hbo|deezer|apple\.com)\b|youtube premium/i, 'assinatura'],
     [/\b(farmacia|droga|drogaria|medicam)\b/i, 'saude'],
@@ -267,9 +341,29 @@ function _buildPreview() {
   const preview = [];
 
   _importState.rows.forEach((r, idx) => {
-    const dataRaw = m.date  !== undefined ? r[m.date]  : '';
-    const desc    = (m.desc !== undefined ? r[m.desc] : '').trim();
+    const dataRaw = m.date !== undefined ? r[m.date] : '';
+
+    // ── Montar descrição ──
+    // Se temos Histórico separado de Descrição, concatenamos para display
+    // e usamos Histórico para classificação
+    const historico = m.historico !== undefined ? (r[m.historico] || '').trim() : '';
+    const descCol   = m.desc !== undefined ? (r[m.desc] || '').trim() : '';
+
+    let desc, displayDesc;
+    if (m.historico !== undefined && m.desc !== undefined && m.historico !== m.desc) {
+      // Duas colunas separadas: Descrição (nome do destino) é mais útil p/ display
+      displayDesc = descCol || historico;
+      desc = displayDesc;
+    } else {
+      desc = descCol || historico;
+      displayDesc = desc;
+    }
+
+    // ── Determinar valor e tipo ──
     let valor = 0, tipo = 'gasto';
+
+    // Prioridade 1: Histórico para classificação (bancos brasileiros)
+    const histDetect = _detectFromHistorico(historico);
 
     // Caso 1: colunas separadas de crédito e débito
     if (m.credit !== undefined || m.debit !== undefined) {
@@ -281,24 +375,53 @@ function _buildPreview() {
     // Caso 2: coluna única de valor (positivo/negativo)
     else if (m.valor !== undefined) {
       const v = _normalizeValor(r[m.valor]);
-      if (v < 0) { valor = Math.abs(v); tipo = 'gasto'; }
-      else       { valor = v;            tipo = 'receita'; }
+      valor = Math.abs(v);
+      // Se temos Histórico, usamos a classificação dele (mais precisa que sinal +/-)
+      if (histDetect) {
+        tipo = histDetect.tipo;
+      } else {
+        tipo = v < 0 ? 'gasto' : 'receita';
+      }
     }
 
     const data = _normalizeDate(dataRaw);
-    if (!data || !desc || valor <= 0) return;
+    if (!data || (!desc && !historico) || valor <= 0) return;
 
-    // Reclassifica como investimento se a descrição sugerir
-    if (_isInvestDescription(desc)) tipo = 'investimento';
+    // Se Histórico detectou o tipo mas não tínhamos calculado via valor,
+    // usa o tipo do Histórico
+    if (histDetect) tipo = histDetect.tipo;
+
+    // Reclassifica como investimento se a descrição ou Histórico sugerir
+    if (!histDetect && _isInvestDescription(desc + ' ' + historico)) tipo = 'investimento';
+
+    // ── Determinar forma de pagamento ──
+    let pay;
+    if (histDetect) {
+      pay = histDetect.pay;
+    } else if (tipo === 'gasto') {
+      pay = _detectPayMethod(desc);
+    } else if (tipo === 'receita') {
+      pay = 'banco';
+    } else {
+      pay = 'rendafixa';
+    }
+
+    // ── Categorização ──
+    const fullText = (historico + ' ' + descCol).trim();
+    let cat;
+    if (tipo === 'gasto') {
+      // Usa Histórico para pistas adicionais de categoria
+      if (/pagamento.*fatura/i.test(historico)) cat = 'divida';
+      else cat = _guessCategory(fullText || desc);
+    } else if (tipo === 'investimento') {
+      cat = 'investimento';
+    } else {
+      cat = 'outros';
+    }
 
     const item = {
-      idx,
-      data,
-      desc,
-      valor,
-      tipo,
-      cat: tipo === 'gasto' ? _guessCategory(desc) : (tipo === 'investimento' ? 'investimento' : 'outros'),
-      pay: tipo === 'gasto' ? _detectPayMethod(desc) : (tipo === 'receita' ? 'banco' : 'rendafixa'),
+      idx, data, valor, tipo, cat, pay,
+      desc: displayDesc,
       checked: true,
       dup: false,
     };
