@@ -2735,10 +2735,29 @@ h3 .icon { width: 18px; height: 18px; vertical-align: -0.25em; }
   font-family: var(--mono); font-size: 11px;
 }
 
+/* ——— Modal import: layout com scroll ——— */
+.modal-import {
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal-import #modalImportBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;       /* permite flex child encolher */
+  overflow: hidden;
+}
+.imp-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  margin-bottom: 4px;
+}
+
 /* ——— Tabela desktop ——— */
 .imp-table {
   width: 100%; border-collapse: collapse;
-  font-size: 12px; margin-bottom: 12px;
+  font-size: 12px;
 }
 .imp-table th {
   font-size: 10px; color: var(--text3); font-weight: 400;
@@ -2788,12 +2807,13 @@ h3 .icon { width: 18px; height: 18px; vertical-align: -0.25em; }
 }
 .imp-acts button:hover { color: var(--text); background: var(--bg3); }
 
-/* Rodapé */
+/* Rodapé — fixo no bottom do modal */
 .imp-footer {
   border-top: 1px solid var(--line);
-  margin-top: 14px; padding-top: 14px;
+  margin-top: 8px; padding-top: 12px;
   display: flex; justify-content: space-between; align-items: center;
   gap: 12px; flex-wrap: wrap;
+  flex-shrink: 0;
 }
 .imp-summary { font-size: 11px; color: var(--text3); }
 .imp-actions { display: flex; gap: 8px; }
@@ -2817,7 +2837,6 @@ h3 .icon { width: 18px; height: 18px; vertical-align: -0.25em; }
 
 /* ——— Cards mobile ——— */
 .imp-cards {
-  max-height: 52vh; overflow-y: auto;
   margin-bottom: 12px;
 }
 .imp-card {

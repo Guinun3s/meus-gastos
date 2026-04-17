@@ -552,7 +552,9 @@ function _htmlPreviewStep() {
         <option value="transferencia">Transferência</option>
       </select>
     </div>
-    ${isMob ? _htmlPreviewCards(visible) : _htmlPreviewTable(visible)}
+    <div class="imp-scroll">
+      ${isMob ? _htmlPreviewCards(visible) : _htmlPreviewTable(visible)}
+    </div>
     <div class="imp-footer">
       <div class="imp-summary">${summary}</div>
       <div class="imp-actions">
