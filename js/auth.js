@@ -143,7 +143,7 @@ function updateUserUI(user) {
 function syncBothBalanceInputs() {}
 
 // ── Inicializa Firebase e escuta mudanças de autenticação ────
-function initFirebase() {
+async function initFirebase() {
   if (!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'SUA_API_KEY') {
     console.error('Firebase não configurado. Edite firebase-config.js');
     showScreen('auth');
@@ -152,7 +152,24 @@ function initFirebase() {
   if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
   _auth = firebase.auth();
   _db   = firebase.firestore();
-  _db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
+  try {
+    await _db.enablePersistence({ synchronizeTabs: true });
+    window._persistenceEnabled = true;
+  } catch (err) {
+    window._persistenceEnabled = false;
+    if (err && err.code === 'failed-precondition') {
+      console.warn('[offline] Persistência falhou: múltiplas abas sem suporte.');
+      setTimeout(() => toast('Offline limitado: outra aba está aberta'), 1500);
+    } else if (err && err.code === 'unimplemented') {
+      console.warn('[offline] Navegador não suporta persistência do Firestore.');
+      setTimeout(() => toast('Navegador sem suporte a modo offline'), 1500);
+    } else {
+      console.warn('[offline] enablePersistence falhou:', err);
+    }
+  }
+
+  if (!navigator.onLine) setSyncStatus('offline');
 
   _auth.onAuthStateChanged(async user => {
     if (user) {

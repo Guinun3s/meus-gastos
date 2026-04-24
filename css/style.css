@@ -163,10 +163,24 @@ body {
 .sync-dot {
   width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
   background: var(--text3); cursor: help; transition: background .3s;
+  position: relative;
 }
 .sync-dot[data-s="syncing"] { background: var(--amber); animation: pulse .8s ease infinite; }
 .sync-dot[data-s="ok"]      { background: var(--accent); }
 .sync-dot[data-s="error"]   { background: var(--red); }
+.sync-dot[data-s="offline"] { background: var(--text3); box-shadow: 0 0 0 2px var(--bg1), 0 0 0 3px var(--text3); opacity: .85; }
+.sync-dot[data-s="pending"] { background: var(--amber); animation: pulse 1.4s ease infinite; }
+.sync-dot[data-count]::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -8px; left: 8px;
+  min-width: 14px; height: 14px; padding: 0 3px;
+  border-radius: 7px;
+  background: var(--amber); color: #0e0e0f;
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 
 .tbtn { background: none; border: 1px solid var(--line2); color: var(--text2); padding: 5px 13px; border-radius: 5px; cursor: pointer; font-family: var(--mono); font-size: 12px; transition: all .15s; }

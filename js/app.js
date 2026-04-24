@@ -119,4 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
   initFirebase();
   // Notificações inicializadas após Firebase (dados já carregados)
   setTimeout(initNotifications, 3000);
+
+  // ── Detecção de conectividade ────────────────────────────
+  window.addEventListener('online', () => {
+    toast('Conectado — sincronizando...');
+    setSyncStatus('syncing');
+    if (typeof _user !== 'undefined' && _user && typeof syncNow === 'function') {
+      syncNow();
+    }
+  });
+  window.addEventListener('offline', () => {
+    setSyncStatus('offline');
+    toast('Você está offline — alterações serão sincronizadas depois');
+  });
+  if (!navigator.onLine) setSyncStatus('offline');
 });

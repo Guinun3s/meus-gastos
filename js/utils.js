@@ -65,14 +65,21 @@ function initOverlayClose() {
 }
 
 // ── Sync status dot ──────────────────────────────────────────
-function setSyncStatus(s) {
+function setSyncStatus(s, count) {
   const dot = document.getElementById('syncDot');
   if (!dot) return;
   dot.setAttribute('data-s', s);
+  if (s === 'pending' && typeof count === 'number' && count > 0) {
+    dot.setAttribute('data-count', String(count));
+  } else {
+    dot.removeAttribute('data-count');
+  }
   dot.title = {
     syncing: 'Sincronizando...',
     ok:      'Sincronizado',
     error:   'Erro de sincronização',
+    offline: 'Offline — suas alterações serão sincronizadas quando voltar',
+    pending: count ? `${count} lançamento(s) pendente(s)` : 'Aguardando sincronização',
   }[s] || '';
 }
 
