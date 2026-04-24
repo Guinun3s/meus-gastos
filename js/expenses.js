@@ -215,7 +215,7 @@ function saveExpenseMobile() {
     _updateExpense(_editingId, desc, valor, cat, pay, data, editCardId);
     closeSheet('sheetAdd');
   } else {
-    if (_dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId)) {
+    if (_dispatchAdd(desc, valor, cat, pay, data, type, qty, goalId, cardId)) {
       document.getElementById('mDesc').value  = '';
       document.getElementById('mValor').value = '';
       document.getElementById('mDesc').dataset.autoFilled = '0';

@@ -125,43 +125,73 @@ function _parseVoiceInput(text) {
 function _fillFormWithVoice({ desc, valor, cat, pay, isReceita }) {
   const mob = isMobile();
 
-  // Detecta aba/modo atual no extrato (desktop)
-  const extratoType = typeof _extratoType !== 'undefined' ? _extratoType : 'gastos';
-  const currentTabIsReceita = extratoType === 'receitas';
-  // Se o usuário não detectou receita pela fala mas está na aba receitas, força receita
-  const forceReceita = isReceita || currentTabIsReceita;
+  // ── Detecta a aba/modo atual ──
+  // Mobile: _addSheetMode é o modo do sheet (gasto|receita|investimento)
+  // Desktop: _extratoType é a aba do extrato (gastos|receitas|investimentos)
+  let currentMode;
+  if (mob) {
+    currentMode = typeof _addSheetMode !== 'undefined' ? _addSheetMode : 'gasto';
+  } else {
+    const et = typeof _extratoType !== 'undefined' ? _extratoType : 'gastos';
+    if (et === 'receitas') currentMode = 'receita';
+    else if (et === 'investimentos') currentMode = 'investimento';
+    else currentMode = 'gasto';
+  }
+
+  // Determina o modo final: prioridade da fala, depois respeita a aba atual
+  let targetMode;
+  if (isReceita)                                           targetMode = 'receita';
+  else if (cat === 'investimento')                         targetMode = 'investimento';
+  else if (currentMode === 'receita' || currentMode === 'investimento') targetMode = currentMode;
+  else                                                     targetMode = 'gasto';
 
   if (mob) {
-    openAddSheet();
-    if (forceReceita) setAddSheetMode('receita');
-    else              setAddSheetMode('gasto');
+    // O botão de voz fica dentro do sheetAdd, que já pode estar aberto
+    // na aba correta. Só abre se não estiver visível.
+    const sheetEl = document.getElementById('sheetAdd');
+    const sheetOpen = sheetEl && sheetEl.closest('.sheet-bg.open');
+    if (!sheetOpen) {
+      openAddSheet();
+      setAddSheetMode(targetMode);
+    }
+    // Se o sheet já estava aberto, mantém o modo atual (receita/investimento)
 
     setTimeout(() => {
+      const activeMode = typeof _addSheetMode !== 'undefined' ? _addSheetMode : 'gasto';
       const d = document.getElementById('mDesc');
       const v = document.getElementById('mValor');
-      const c = document.getElementById('mCatSelect');
-      const p = document.getElementById('mPaySelect');
       if (d) d.value = desc;
       if (v && valor) v.value = valor;
-      if (!forceReceita) {
+
+      if (activeMode === 'gasto') {
+        const c = document.getElementById('mCatSelect');
+        const p = document.getElementById('mPaySelect');
         if (c) { c.value = cat; if (typeof onCatChange === 'function') onCatChange(c); }
         if (p) { p.value = pay; if (typeof onPayChange === 'function') onPayChange(p); }
       }
+      toast('Formulário preenchido — revise e confirme!');
     }, 200);
   } else {
-    if (forceReceita) {
-      // Preenche formulário de receita (campo incDesc não existe mais no extrato)
-      // Usa o sheetIncome se mobile, ou adiciona direto
+    if (targetMode === 'receita') {
       const r = { id: Date.now(), desc, valor: valor || 0,
                   data: new Date().toISOString().split('T')[0], tipo: 'banco' };
       const list = loadInc();
       list.unshift(r);
       saveInc(list);
-      // Muda para aba receitas no extrato
       if (typeof setExtratoType === 'function') setExtratoType('receitas',
         document.querySelector('[data-etype="receitas"]'));
       render();
       toast(`Receita "${desc}" adicionada — R$ ${fmt(valor || 0)}`);
+    } else if (targetMode === 'investimento') {
+      const inv = { id: Date.now(), desc, valor: valor || 0,
+                    data: new Date().toISOString().split('T')[0], tipo: 'rendafixa' };
+      const list = loadInvest();
+      list.unshift(inv);
+      saveInvest(list);
+      if (typeof setExtratoType === 'function') setExtratoType('investimentos',
+        document.querySelector('[data-etype="investimentos"]'));
+      render();
+      toast(`Investimento "${desc}" adicionado — R$ ${fmt(valor || 0)}`);
     } else {
       const d = document.getElementById('desc');
       const v = document.getElementById('valor');
