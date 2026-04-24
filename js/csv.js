@@ -93,7 +93,10 @@ function _findLastEntryDate() {
 function handleCSVFile(input) {
   const file = input.files && input.files[0];
   if (!file) return;
+  _readCSVFile(file);
+}
 
+function _readCSVFile(file) {
   _importState.file = file;
   const reader = new FileReader();
   reader.onload = e => {
@@ -108,6 +111,35 @@ function handleCSVFile(input) {
     }
   };
   reader.readAsText(file, 'UTF-8');
+}
+
+// ── Drag & Drop ─────────────────────────────────────────────
+function _initDropzone() {
+  const dz = document.querySelector('.imp-dropzone');
+  if (!dz) return;
+
+  dz.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    dz.classList.add('dragover');
+  });
+  dz.addEventListener('dragleave', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    dz.classList.remove('dragover');
+  });
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    dz.classList.remove('dragover');
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast('Selecione um arquivo .csv');
+      return;
+    }
+    _readCSVFile(file);
+  });
 }
 
 function _processCSVText(text) {
@@ -167,7 +199,7 @@ function _parseCSV(text) {
   // ── Procura a linha de header real: primeira linha "cheia"
   // (≥2 delimitadores) que contenha pelo menos um keyword conhecido
   const normalize = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const keywordRe = /(data|hist[oó]rico|descri[cç][aã]o|valor|credito|débito|debito|montante|lan[cç]amento|movimenta)/i;
+  const keywordRe = /(data|hist[oó]rico|descri[cç][aã]o|valor|credito|cr[eé]dito|d[eé]bito|debito|montante|lan[cç]amento|movimenta|titulo|identificador|amount|date|saldo)/i;
 
   let headerIdx = 0;
   for (let i = 0; i < scan.length; i++) {
@@ -187,25 +219,35 @@ function _parseCSV(text) {
 }
 
 // ── Detecção automática de colunas ───────────────────────────
+// Suporta formatos de: Inter, Nubank, Itaú, Bradesco, Santander, C6, BTG, Caixa, BB
 function _autoDetectColumns(headers) {
   const m = {};
   headers.forEach((h, i) => {
     const lh = h.toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos preservando letras
-      .replace(/[^a-z]/g, '');
-    if (m.date === undefined && /data|date|dt|lancamento|movimentacao/.test(lh)) m.date = i;
-    // Histórico: coluna primária de descrição — contém tipo da operação (Pix enviado, Compra no débito…)
-    else if (m.historico === undefined && /historico/.test(lh)) m.historico = i;
-    // Descrição: coluna secundária — contém nome do destinatário/estabelecimento
-    else if (m.desc === undefined && /desc|descricao|memo|movimento|detalhe/.test(lh)) m.desc = i;
-    else if (m.credit === undefined && /credito|entrada|receita|crédit/.test(lh)) m.credit = i;
-    else if (m.debit === undefined && /debito|saida|despesa|débit/.test(lh)) m.debit = i;
-    else if (m.valor === undefined && /valor|value|amount|montante|quantia/.test(lh)) m.valor = i;
-    else if (m.tipo === undefined && /tipo|type/.test(lh)) m.tipo = i;
-    // Ignora coluna "Saldo" — não precisamos dela
+      .replace(/[^a-z0-9]/g, '');
+    // Data — suporta "Data", "Data Lançamento", "Data Movimentação", "Date"
+    if (m.date === undefined && /^(data|date|dt|datalancamento|datamoviment|datamov|dtmov)/.test(lh)) m.date = i;
+    // Histórico (Inter, Bradesco): tipo da operação
+    else if (m.historico === undefined && /^(historico|tipolancamento|tipolanc|natureza|tipodemov)/.test(lh)) m.historico = i;
+    // Descrição: nome do destinatário/estabelecimento
+    else if (m.desc === undefined && /^(desc|descricao|titulo|memo|movimento|detalhe|favorecido|contrapart|nome)/.test(lh)) m.desc = i;
+    // Identificador (Nubank): só usa como desc se não achou desc melhor
+    else if (m.desc === undefined && m.ident === undefined && /^identificador/.test(lh)) m.ident = i;
+    // Crédito/Entrada (bancos que separam em 2 colunas)
+    else if (m.credit === undefined && /^(credito|entrada|receita|credit|valorentrada)/.test(lh)) m.credit = i;
+    // Débito/Saída
+    else if (m.debit === undefined && /^(debito|saida|despesa|debit|valorsaida)/.test(lh)) m.debit = i;
+    // Valor único (positivo/negativo)
+    else if (m.valor === undefined && /^(valor|value|amount|montante|quantia|vlr)/.test(lh)) m.valor = i;
+    // Tipo (raro)
+    else if (m.tipo === undefined && /^(tipo|type|categoria|category)$/.test(lh)) m.tipo = i;
+    // Ignora: Saldo, Agência, Conta, Identificador (Nubank 2ª col), Nº Doc
   });
-  // Se tem historico mas não desc, usa historico como desc
+  // Fallbacks: historico ou identificador como desc
   if (m.historico !== undefined && m.desc === undefined) m.desc = m.historico;
+  if (m.desc === undefined && m.ident !== undefined) m.desc = m.ident;
+  delete m.ident; // campo auxiliar, não precisa persistir
   return m;
 }
 
@@ -255,48 +297,83 @@ function _detectPayMethod(desc) {
 }
 
 // ── Classificação baseada no campo Histórico (bancos brasileiros) ──
+// Suporta padrões de: Inter, Nubank, Itaú, Bradesco, Santander, C6, BTG, Caixa, BB
 // Retorna { tipo, pay } ou null se não reconhecer
 function _detectFromHistorico(hist) {
   if (!hist) return null;
   const h = hist.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
-  // Pix devolvido = receita (dinheiro voltou)
-  if (/pix enviado devolvido/.test(h))   return { tipo: 'receita', pay: 'banco' };
-  // Pix enviado = gasto
-  if (/pix enviado/.test(h))             return { tipo: 'gasto', pay: 'pix' };
-  // Pix recebido = receita
-  if (/pix recebido/.test(h))            return { tipo: 'receita', pay: 'banco' };
+  // ── PIX ──
+  if (/pix (enviado|transferido) devolvido|pix devolv/.test(h)) return { tipo: 'receita', pay: 'banco' };
+  if (/pix (enviado|transferido|transf)/.test(h))               return { tipo: 'gasto', pay: 'pix' };
+  if (/pix (recebido|qr code recebido)/.test(h))                return { tipo: 'receita', pay: 'banco' };
+  // Nubank: "Transferência enviada pelo Pix", "Transferência recebida pelo Pix"
+  if (/transferencia.*enviad.*pix|pix.*enviad/.test(h))          return { tipo: 'gasto', pay: 'pix' };
+  if (/transferencia.*recebid.*pix|pix.*recebid/.test(h))        return { tipo: 'receita', pay: 'banco' };
 
-  // Compra no débito / crédito
-  if (/compra.*debito/.test(h))          return { tipo: 'gasto', pay: 'debito' };
-  if (/compra.*credito/.test(h))         return { tipo: 'gasto', pay: 'credito' };
+  // ── Compras ──
+  if (/compra.*debito|compra no deb/.test(h))                    return { tipo: 'gasto', pay: 'debito' };
+  if (/compra.*credito|compra no cred|parcela/.test(h))          return { tipo: 'gasto', pay: 'credito' };
 
-  // Pagamento efetuado (fatura, boleto, etc)
-  if (/pagamento efetuado/.test(h))      return { tipo: 'gasto', pay: 'debito' };
-  if (/pagamento.*boleto/.test(h))       return { tipo: 'gasto', pay: 'boleto' };
+  // ── Pagamentos ──
+  if (/pagamento efetuado|pagto.*efet/.test(h))                  return { tipo: 'gasto', pay: 'debito' };
+  if (/pagamento.*boleto|boleto.*pago/.test(h))                  return { tipo: 'gasto', pay: 'boleto' };
+  if (/pagamento.*conta|pagamento.*fatura/.test(h))              return { tipo: 'gasto', pay: 'debito' };
+  // Nubank: "Pagamento de boleto efetuado"
+  if (/pagamento.*boleto.*efet/.test(h))                         return { tipo: 'gasto', pay: 'boleto' };
 
-  // Aplicação = investimento (valor será ajustado para positivo)
-  if (/aplicacao|aplicac[aã]o/.test(h))  return { tipo: 'investimento', pay: 'rendafixa' };
-  // Resgate de investimento = receita
-  if (/resgate/.test(h))                 return { tipo: 'receita', pay: 'banco' };
+  // ── Investimentos ──
+  if (/aplicacao|aplicac[aã]o|compra.*titulo|compra.*acao/.test(h)) return { tipo: 'investimento', pay: 'rendafixa' };
+  if (/resgate/.test(h))                                         return { tipo: 'receita', pay: 'banco' };
+  // B3, dividendos, proventos (Inter, BTG, etc)
+  if (/credito evento b3|rendimento|provento|dividendo|jcp|jscp|juro.*capital/.test(h)) return { tipo: 'receita', pay: 'banco' };
 
-  // Crédito Evento B3 / Rendimento / Provento / Dividendo = receita
-  if (/credito evento b3|rendimento|provento|dividendo/.test(h)) return { tipo: 'receita', pay: 'banco' };
+  // ── TEDs e DOCs ──
+  if (/ted recebid|doc recebid|transferencia recebid|credito transferencia/.test(h)) return { tipo: 'receita', pay: 'banco' };
+  if (/ted enviad|doc enviad|transferencia enviad|debito transferencia/.test(h))      return { tipo: 'gasto', pay: 'transferencia' };
+  // Nubank: "Transferência enviada", "Transferência recebida" (sem "pelo Pix")
+  if (/transferencia enviad/.test(h) && !/pix/.test(h))          return { tipo: 'gasto', pay: 'transferencia' };
+  if (/transferencia recebid/.test(h) && !/pix/.test(h))         return { tipo: 'receita', pay: 'banco' };
 
-  // TED/DOC recebido = receita
-  if (/ted recebido|doc recebido|transferencia recebid/.test(h)) return { tipo: 'receita', pay: 'banco' };
-  // TED/DOC enviado = gasto
-  if (/ted enviado|doc enviado|transferencia enviad/.test(h))    return { tipo: 'gasto', pay: 'transferencia' };
+  // ── Boleto ──
+  if (/boleto/.test(h))                                          return { tipo: 'gasto', pay: 'boleto' };
 
-  // Boleto pago
-  if (/boleto/.test(h))                  return { tipo: 'gasto', pay: 'boleto' };
+  // ── Débito automático ──
+  if (/debito automatico|deb auto/.test(h))                      return { tipo: 'gasto', pay: 'debito' };
 
-  // Débito automático
-  if (/debito automatico/.test(h))       return { tipo: 'gasto', pay: 'debito' };
+  // ── Saque / Depósito ──
+  if (/saque/.test(h))                                           return { tipo: 'gasto', pay: 'dinheiro' };
+  if (/deposito|dep.*dinheiro/.test(h))                          return { tipo: 'receita', pay: 'dinheiro' };
 
-  // Saque / Depósito
-  if (/saque/.test(h))                   return { tipo: 'gasto', pay: 'dinheiro' };
-  if (/deposito/.test(h))               return { tipo: 'receita', pay: 'dinheiro' };
+  // ── Salário / Receitas ──
+  if (/salario|folha.*pagamento|credito salario/.test(h))        return { tipo: 'receita', pay: 'banco' };
+
+  // ── Estorno / Devolução ──
+  if (/estorno|devolucao|chargeback/.test(h))                    return { tipo: 'receita', pay: 'banco' };
+
+  // ── Nubank: descrições diretas como tipo (ex: "Restaurante X", "Uber *Trip") ──
+  // Não retorna nada — deixa classificação por desc/valor
+
+  return null;
+}
+
+// ── Detecção inteligente por descrição (sem Histórico, ex: Nubank) ──
+// Quando não há coluna Histórico separada, tenta inferir tipo/pay da descrição
+function _detectFromDescription(desc, valor) {
+  if (!desc) return null;
+  const d = desc.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // Nubank: transferências pelo app
+  if (/transferencia.*pix|pix -/.test(d))   return { tipo: valor < 0 ? 'gasto' : 'receita', pay: valor < 0 ? 'pix' : 'banco' };
+  if (/pagamento.*boleto/.test(d))          return { tipo: 'gasto', pay: 'boleto' };
+  if (/pagamento de fatura/.test(d))        return { tipo: 'gasto', pay: 'debito' };
+
+  // IOF, Juros, Taxas = gasto
+  if (/^iof|^juros|^tarifa|^taxa/.test(d))  return { tipo: 'gasto', pay: 'debito' };
+
+  // Resgate / Aplicação
+  if (/resgate.*rdb|resgate.*cdb|resgate.*investimento/.test(d)) return { tipo: 'receita', pay: 'banco' };
+  if (/aplicacao.*rdb|aplicacao.*cdb/.test(d))                   return { tipo: 'investimento', pay: 'rendafixa' };
 
   return null;
 }
@@ -376,7 +453,6 @@ function _buildPreview() {
     else if (m.valor !== undefined) {
       const v = _normalizeValor(r[m.valor]);
       valor = Math.abs(v);
-      // Se temos Histórico, usamos a classificação dele (mais precisa que sinal +/-)
       if (histDetect) {
         tipo = histDetect.tipo;
       } else {
@@ -387,17 +463,20 @@ function _buildPreview() {
     const data = _normalizeDate(dataRaw);
     if (!data || (!desc && !historico) || valor <= 0) return;
 
-    // Se Histórico detectou o tipo mas não tínhamos calculado via valor,
-    // usa o tipo do Histórico
-    if (histDetect) tipo = histDetect.tipo;
+    // Classificação: Histórico > Descrição > sinal do valor
+    const rawValor = m.valor !== undefined ? _normalizeValor(r[m.valor]) : 0;
+    const descDetect = !histDetect ? _detectFromDescription(desc, rawValor) : null;
+    const detect = histDetect || descDetect;
+
+    if (detect) tipo = detect.tipo;
 
     // Reclassifica como investimento se a descrição ou Histórico sugerir
-    if (!histDetect && _isInvestDescription(desc + ' ' + historico)) tipo = 'investimento';
+    if (!detect && _isInvestDescription(desc + ' ' + historico)) tipo = 'investimento';
 
     // ── Determinar forma de pagamento ──
     let pay;
-    if (histDetect) {
-      pay = histDetect.pay;
+    if (detect) {
+      pay = detect.pay;
     } else if (tipo === 'gasto') {
       pay = _detectPayMethod(desc);
     } else if (tipo === 'receita') {
@@ -440,7 +519,7 @@ function _renderImportStep(step) {
   const el = document.getElementById(containerId);
   if (!el) return;
 
-  if (step === 'upload')       el.innerHTML = _htmlUploadStep();
+  if (step === 'upload')       { el.innerHTML = _htmlUploadStep(); _initDropzone(); }
   else if (step === 'mapping') el.innerHTML = _htmlMappingStep();
   else if (step === 'preview') el.innerHTML = _htmlPreviewStep();
 }
@@ -449,6 +528,25 @@ function _renderImportStep(step) {
 function _htmlUploadStep() {
   const last = _importState.lastDate;
   const lastStr = last ? fmtDate(last) + '/' + last.slice(0, 4) : null;
+  const history = _loadImportHistory();
+  const mob = isMobile();
+
+  let historyHtml = '';
+  if (history.length > 0) {
+    const items = history.slice(0, 5).map(h => {
+      const dateStr = h.date ? fmtDate(h.date) : '—';
+      return `<div class="imp-hist-item">
+        <span class="imp-hist-file">${_escHtml(h.fileName)}</span>
+        <span class="imp-hist-meta">${h.count} lançamentos · ${dateStr}</span>
+      </div>`;
+    }).join('');
+    historyHtml = `
+      <div class="imp-history">
+        <div class="imp-hist-title">Importações anteriores</div>
+        ${items}
+      </div>`;
+  }
+
   return `
     ${last ? `
       <div class="imp-warn">
@@ -458,11 +556,27 @@ function _htmlUploadStep() {
       </div>` : ''}
     <div class="imp-dropzone" onclick="document.getElementById('impFileInput').click()">
       <div class="imp-dz-icon">${typeof icon==='function' ? icon('upload') : '⬆'}</div>
-      <div class="imp-dz-title">${isMobile() ? 'Toque para selecionar' : 'Clique ou arraste o CSV aqui'}</div>
+      <div class="imp-dz-title">${mob ? 'Toque para selecionar' : 'Clique ou arraste o CSV aqui'}</div>
       <div class="imp-dz-sub">Extrato exportado do seu banco (.csv)</div>
       <button class="btn-p" type="button" onclick="event.stopPropagation();document.getElementById('impFileInput').click()">Escolher arquivo</button>
       <input type="file" id="impFileInput" accept=".csv,text/csv" style="display:none" onchange="handleCSVFile(this)">
-    </div>`;
+    </div>
+    <div class="imp-banks">
+      <div class="imp-banks-title">Bancos compatíveis</div>
+      <div class="imp-banks-list">
+        <span class="imp-bank-tag">Inter</span>
+        <span class="imp-bank-tag">Nubank</span>
+        <span class="imp-bank-tag">Itaú</span>
+        <span class="imp-bank-tag">Bradesco</span>
+        <span class="imp-bank-tag">Santander</span>
+        <span class="imp-bank-tag">C6 Bank</span>
+        <span class="imp-bank-tag">BTG</span>
+        <span class="imp-bank-tag">Caixa</span>
+        <span class="imp-bank-tag">BB</span>
+        <span class="imp-bank-tag">Outros CSV</span>
+      </div>
+    </div>
+    ${historyHtml}`;
 }
 
 // ── View: mapeamento manual ──────────────────────────────────
@@ -783,6 +897,31 @@ function _editRow(idx) {
   _renderImportStep('preview');
 }
 
+// ── Histórico de importações ─────────────────────────────────
+function _loadImportHistory() {
+  try {
+    return JSON.parse(localStorage.getItem('importHistory') || '[]');
+  } catch { return []; }
+}
+
+function _saveImportRecord(fileName, count, dateRange) {
+  const history = _loadImportHistory();
+  history.unshift({
+    fileName,
+    count,
+    date: new Date().toISOString().split('T')[0],
+    dateRange, // { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD' }
+    ts: Date.now(),
+  });
+  // Mantém apenas as últimas 20 importações
+  if (history.length > 20) history.length = 20;
+  localStorage.setItem('importHistory', JSON.stringify(history));
+}
+
+function _escHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // ── Execução final da importação ─────────────────────────────
 function _doImport() {
   const selected = _importState.preview.filter(p => p.checked);
@@ -820,6 +959,14 @@ function _doImport() {
       _cache[storeName][k].sort((a, b) => (b.data||'').localeCompare(a.data||''));
     });
   });
+
+  // Salva registro no histórico de importações
+  const dates = selected.map(r => r.data).filter(Boolean).sort();
+  _saveImportRecord(
+    _importState.file ? _importState.file.name : 'importação manual',
+    count,
+    { from: dates[0] || '', to: dates[dates.length - 1] || '' }
+  );
 
   if (typeof scheduleSync === 'function') scheduleSync();
   if (isMobile()) closeSheet('sheetImport');
